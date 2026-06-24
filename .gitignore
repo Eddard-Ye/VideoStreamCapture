@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Jupyter / matplotlib
+.ipynb_checkpoints/
+.mplconfig/
+
+# Model weights (download on first run or place manually)
+*.pt
+checkpoints/*.pth
+checkpoints/*.pt
+!checkpoints/.gitkeep
+
+# Runtime output
+output/
+!output/.gitkeep
+!output/captures/.gitkeep
+
+# Calibration capture images (local data)
+calib_images/
+
+# Environment secrets
+.env
+.env.*
+
+# Logs
+*.log
+
+# Large local-only artifacts
+mobile_sam.pt
