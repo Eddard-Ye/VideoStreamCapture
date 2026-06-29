@@ -18,7 +18,7 @@ def refine_mask_otsu(
     image_bgr: np.ndarray,
     yolo_mask: np.ndarray,
     *,
-    pad: int = 12,
+    pad: int = 80,
     min_overlap: int = 8,
 ) -> np.ndarray:
     """Expand YOLO mask toward high-contrast edges via Otsu inside a padded tight bbox."""

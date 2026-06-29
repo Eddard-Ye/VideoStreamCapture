@@ -482,8 +482,8 @@ def main() -> int:
     parser.add_argument(
         "--mask-refine-pad",
         type=int,
-        default=12,
-        help="Padding (px) around YOLO bbox for Otsu refinement (default: 12).",
+        default=80,
+        help="Padding (px) around YOLO bbox for Otsu refinement (default: 80).",
     )
     parser.add_argument(
         "--sam-checkpoint",

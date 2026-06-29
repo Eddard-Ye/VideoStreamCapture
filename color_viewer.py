@@ -234,6 +234,31 @@ class SegInstance:
     sam_prompt_labels: list[int] = field(default_factory=list)
 
 
+def _mask_iou(mask_a: np.ndarray, mask_b: np.ndarray) -> float:
+    inter = int(np.logical_and(mask_a, mask_b).sum())
+    if inter == 0:
+        return 0.0
+    union = int(np.logical_or(mask_a, mask_b).sum())
+    return inter / union
+
+
+def deduplicate_seg_instances(
+    instances: list[SegInstance],
+    *,
+    iou_threshold: float = 0.5,
+) -> list[SegInstance]:
+    """Keep highest-confidence detection when multiple masks cover the same object."""
+    if len(instances) <= 1:
+        return instances
+
+    ranked = sorted(instances, key=lambda item: item.confidence, reverse=True)
+    kept: list[SegInstance] = []
+    for candidate in ranked:
+        if all(_mask_iou(candidate.mask, existing.mask) < iou_threshold for existing in kept):
+            kept.append(candidate)
+    return kept
+
+
 class YoloSegmenter:
     def __init__(
         self,
@@ -241,7 +266,7 @@ class YoloSegmenter:
         conf: float = 0.25,
         *,
         mask_refine: str = "otsu",
-        mask_refine_pad: int = 12,
+        mask_refine_pad: int = 80,
     ):
         self.model_path = model_path
         self.conf = conf
@@ -327,7 +352,7 @@ class YoloSegmenter:
                     confidence=confidence,
                 )
             )
-        return instances
+        return deduplicate_seg_instances(instances)
 
 
 class ColorViewer:
