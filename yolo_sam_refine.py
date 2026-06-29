@@ -30,6 +30,26 @@ SAM_VIT_B_URL = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec6
 DEFAULT_CKPT = PROJECT_ROOT / "checkpoints" / "sam_vit_b_01ec64.pth"
 
 
+def resolve_inference_device():
+    """Pick CUDA when available, else MPS (Apple), else CPU."""
+    import torch
+
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def yolo_predict_device(device) -> int | str:
+    """Map a torch device to the value Ultralytics ``predict(device=...)`` expects."""
+    if device.type == "cuda":
+        return device.index if device.index is not None else 0
+    if device.type == "mps":
+        return "mps"
+    return "cpu"
+
+
 @dataclass
 class SamSubRegion:
     name: str
@@ -514,12 +534,7 @@ class SamRefiner:
                 "Place sam_vit_b_01ec64.pth under checkpoints/ or pass --sam-checkpoint."
             )
 
-        if torch.cuda.is_available():
-            device = torch.device("cuda")
-        elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
-            device = torch.device("mps")
-        else:
-            device = torch.device("cpu")
+        device = resolve_inference_device()
 
         print(f"Loading SAM ViT-B from {self.checkpoint} on {device} ...")
         sam = sam_model_registry["vit_b"](checkpoint=str(self.checkpoint))
