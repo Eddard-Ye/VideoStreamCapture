@@ -10,14 +10,16 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from color_viewer import PALETTE, SegInstance
+from color_viewer import SegInstance
 from object_measure import format_lw_label, oriented_box_from_mask
 from sam_centerline import WaterCutAnalysis, draw_water_cut_overlay
 from yolo_sam_refine import SamRefiner
 
 SAM_COLOR_BGR = SamRefiner.SAM_COLOR_BGR
-LABEL_COLOR_BGR = (0, 255, 255)  # yellow — high contrast on most scenes
-LABEL_OUTLINE_BGR = (0, 0, 0)
+LABEL_COLOR_BGR = (180, 60, 20)  # deep blue — high contrast on light scenes
+LABEL_OUTLINE_BGR = (255, 255, 255)
+YOLO_CONTOUR_BGR = (0, 255, 0)
+YOLO_OBB_BGR = (0, 220, 120)
 RECORD_COLOR_BGR = (255, 255, 255)
 RECORD_BG_BGR = (20, 20, 20)
 
@@ -222,6 +224,30 @@ def _format_lw_px_label(instance: SegInstance) -> str | None:
     )
 
 
+def _draw_instance_contours(frame: np.ndarray, instances: list[SegInstance]) -> None:
+    """Draw mask boundary only; mask data is still used upstream for OBB / LxW metrics."""
+    thickness = max(2, int(round(2 * LABEL_SIZE_FACTOR)))
+    for instance in instances:
+        if not np.any(instance.mask):
+            continue
+        mask_u8 = instance.mask.astype(np.uint8) * 255
+        contours, _ = cv2.findContours(mask_u8, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            cv2.drawContours(frame, contours, -1, YOLO_CONTOUR_BGR, thickness, cv2.LINE_AA)
+
+
+def _draw_instance_oriented_boxes(frame: np.ndarray, instances: list[SegInstance]) -> None:
+    thickness = max(2, int(round(2 * LABEL_SIZE_FACTOR)))
+    for instance in instances:
+        box_pts = instance.box_pts
+        if box_pts is None:
+            box_pts = oriented_box_from_mask(instance.mask)
+        if box_pts is None:
+            continue
+        box_i32 = np.round(box_pts).astype(np.int32).reshape(-1, 1, 2)
+        cv2.polylines(frame, [box_i32], True, YOLO_OBB_BGR, thickness, cv2.LINE_AA)
+
+
 def _draw_instance_labels(
     frame: np.ndarray,
     instances: list[SegInstance],
@@ -259,7 +285,7 @@ def _draw_instance_labels(
                 (x0, base_y + index * line_height),
                 scale=label_scale,
                 thickness=max(2, int(round(2 * LABEL_SIZE_FACTOR))),
-                color=(0, 200, 255),
+                color=LABEL_COLOR_BGR,
             )
 
 
@@ -293,23 +319,10 @@ def compose_stream_frame(
     water_cut_overlays: list[WaterCutOverlay] | None = None,
     status_text: str | None = None,
 ) -> np.ndarray:
-    blend = image_bgr.astype(np.float32)
+    frame = image_bgr.copy()
 
-    for index, instance in enumerate(instances):
-        color = np.array(PALETTE[index % len(PALETTE)], dtype=np.float32)
-        mask = instance.mask
-        blend[mask] = blend[mask] * 0.70 + color * 0.30
-
-    frame = blend.astype(np.uint8)
-
-    for index, instance in enumerate(instances):
-        box_pts = instance.box_pts
-        if box_pts is None:
-            box_pts = oriented_box_from_mask(instance.mask)
-        if box_pts is not None:
-            box_i32 = np.round(box_pts).astype(np.int32).reshape(-1, 1, 2)
-            cv2.polylines(frame, [box_i32], True, (0, 220, 120), 2, cv2.LINE_AA)
-
+    _draw_instance_contours(frame, instances)
+    _draw_instance_oriented_boxes(frame, instances)
     _draw_instance_labels(frame, instances, water_cut_overlays)
 
     if water_cut_overlays:

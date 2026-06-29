@@ -24,7 +24,15 @@ from object_measure import (
     oriented_box_metrics_from_mask,
     plane_depth_in_roi,
 )
-from yolo_sam_refine import SamRefiner, SamSubRegion, prepare_water_cut_box_prompts, run_water_cut_box_sam
+from yolo_sam_refine import (
+    SamRefiner,
+    SamSubRegion,
+    prepare_water_cut_box_prompts,
+    resolve_inference_device,
+    run_water_cut_box_sam,
+    yolo_predict_device,
+)
+from mask_refine import refine_mask_otsu
 from sam_centerline import analyze_water_cut, draw_water_cut_overlay
 
 YOLO_MODEL_URLS = {
@@ -226,18 +234,53 @@ class SegInstance:
     sam_prompt_labels: list[int] = field(default_factory=list)
 
 
+def _mask_iou(mask_a: np.ndarray, mask_b: np.ndarray) -> float:
+    inter = int(np.logical_and(mask_a, mask_b).sum())
+    if inter == 0:
+        return 0.0
+    union = int(np.logical_or(mask_a, mask_b).sum())
+    return inter / union
+
+
+def deduplicate_seg_instances(
+    instances: list[SegInstance],
+    *,
+    iou_threshold: float = 0.5,
+) -> list[SegInstance]:
+    """Keep highest-confidence detection when multiple masks cover the same object."""
+    if len(instances) <= 1:
+        return instances
+
+    ranked = sorted(instances, key=lambda item: item.confidence, reverse=True)
+    kept: list[SegInstance] = []
+    for candidate in ranked:
+        if all(_mask_iou(candidate.mask, existing.mask) < iou_threshold for existing in kept):
+            kept.append(candidate)
+    return kept
+
+
 class YoloSegmenter:
-    def __init__(self, model_path: str = "yolov8n-seg.pt", conf: float = 0.25):
+    def __init__(
+        self,
+        model_path: str = "yolov8n-seg.pt",
+        conf: float = 0.25,
+        *,
+        mask_refine: str = "otsu",
+        mask_refine_pad: int = 80,
+    ):
         self.model_path = model_path
         self.conf = conf
+        self.mask_refine = mask_refine
+        self.mask_refine_pad = max(0, int(mask_refine_pad))
         self._model = None
+        self._device = resolve_inference_device()
 
     def _get_model(self):
         if self._model is None:
             from ultralytics import YOLO
 
             resolved = resolve_model_path(self.model_path)
-            print(f"Loading YOLO model: {resolved} ...")
+            print(f"Loading YOLO model: {resolved} on {self._device} ...")
             try:
                 self._model = YOLO(resolved)
             except (ConnectionError, OSError) as exc:
@@ -269,6 +312,8 @@ class YoloSegmenter:
             "source": roi_image,
             "conf": self.conf if conf is None else float(conf),
             "verbose": False,
+            "device": yolo_predict_device(self._device),
+            "retina_masks": True,
         }
         if imgsz is not None:
             predict_kwargs["imgsz"] = int(imgsz)
@@ -292,15 +337,22 @@ class YoloSegmenter:
                 mask = cv2.resize(mask, (roi_width, roi_height), interpolation=cv2.INTER_LINEAR)
             class_id = int(result.boxes.cls[index].item())
             confidence = float(result.boxes.conf[index].item())
+            mask_bool = roi.embed_mask(mask > 0.5, full_height, full_width)
+            if self.mask_refine == "otsu":
+                mask_bool = refine_mask_otsu(
+                    image_bgr,
+                    mask_bool,
+                    pad=self.mask_refine_pad,
+                )
             instances.append(
                 SegInstance(
-                    mask=roi.embed_mask(mask > 0.5, full_height, full_width),
+                    mask=mask_bool,
                     class_id=class_id,
                     class_name=str(names.get(class_id, class_id)),
                     confidence=confidence,
                 )
             )
-        return instances
+        return deduplicate_seg_instances(instances)
 
 
 class ColorViewer:

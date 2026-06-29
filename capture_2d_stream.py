@@ -305,7 +305,12 @@ def run_stream(args: argparse.Namespace) -> int:
         elif not args.no_calib:
             print("Running without mm calibration; overlay will show pixels only.")
 
-        segmenter = YoloSegmenter(args.yolo_model, conf=args.yolo_conf)
+        segmenter = YoloSegmenter(
+            args.yolo_model,
+            conf=args.yolo_conf,
+            mask_refine="off" if args.no_mask_refine else "otsu",
+            mask_refine_pad=args.mask_refine_pad,
+        )
         sam_refiner = SamRefiner(checkpoint=args.sam_checkpoint)
 
         hub = StreamHub(target_fps=args.fps)
@@ -469,6 +474,17 @@ def main() -> int:
     parser.add_argument("--yolo-model", default="yolov8n-seg.pt")
     parser.add_argument("--yolo-conf", type=float, default=0.25)
     parser.add_argument("--yolo-imgsz", type=int, default=640)
+    parser.add_argument(
+        "--no-mask-refine",
+        action="store_true",
+        help="Disable Otsu edge refinement after YOLO segmentation.",
+    )
+    parser.add_argument(
+        "--mask-refine-pad",
+        type=int,
+        default=80,
+        help="Padding (px) around YOLO bbox for Otsu refinement (default: 80).",
+    )
     parser.add_argument(
         "--sam-checkpoint",
         default=None,

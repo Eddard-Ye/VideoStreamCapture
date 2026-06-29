@@ -37,7 +37,7 @@ def _request(method: str, url: str, timeout: float = 30.0, payload: dict | None 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Control capture_2d_stream HTTP API.")
-    parser.add_argument("--host", default="192.168.1.28")
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument(
         "command",
