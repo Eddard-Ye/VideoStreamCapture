@@ -31,6 +31,7 @@ from stream_overlay import (
     format_temperature_display,
 )
 from stream_server import CaptureRequest, StreamHub, start_stream_server
+from track_smoother import TrackSmoother
 from yolo_sam_refine import SamRefiner, prepare_water_cut_box_prompts, run_water_cut_box_sam
 
 
@@ -312,6 +313,15 @@ def run_stream(args: argparse.Namespace) -> int:
             mask_refine_pad=args.mask_refine_pad,
         )
         sam_refiner = SamRefiner(checkpoint=args.sam_checkpoint)
+        smoother = None if args.no_smooth else TrackSmoother(
+            alpha=args.smooth_alpha,
+            max_miss=args.smooth_max_miss,
+        )
+        if smoother is not None:
+            print(
+                f"Live metric smoothing enabled: alpha={args.smooth_alpha}, "
+                f"max_miss={args.smooth_max_miss}"
+            )
 
         hub = StreamHub(target_fps=args.fps)
         server = start_stream_server(
@@ -366,6 +376,11 @@ def run_stream(args: argparse.Namespace) -> int:
             if calib is not None:
                 attach_instance_metrics(instances, calib)
 
+            raw_instances = instances
+            display_instances = (
+                smoother.update(raw_instances) if smoother is not None else raw_instances
+            )
+
             capture_req = hub.consume_capture_request()
             if capture_req is not None:
                 hub.computing_water_cut = capture_req.water_cut
@@ -373,14 +388,14 @@ def run_stream(args: argparse.Namespace) -> int:
                     status_text = "calculating water cut for capture..."
                     preview = compose_stream_frame(
                         image,
-                        instances,
+                        display_instances,
                         water_cut_overlays=water_cut_overlays or None,
                         status_text=status_text,
                     )
                     hub.set_frame(
                         encode_jpeg(preview, args.stream_width, args.jpeg_quality),
                         build_status(
-                            instances=instances,
+                            instances=display_instances,
                             measured_fps=fps_value,
                             water_cut_overlays=water_cut_overlays,
                             computing=True,
@@ -389,7 +404,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 capture_req.result = process_capture_request(
                     request=capture_req,
                     image_bgr=image,
-                    instances=instances,
+                    instances=raw_instances,
                     sam_refiner=sam_refiner,
                     calib=calib,
                     output_dir=args.capture_output_dir,
@@ -404,14 +419,14 @@ def run_stream(args: argparse.Namespace) -> int:
                 status_text = "calculating water cut width..."
                 preview = compose_stream_frame(
                     image,
-                    instances,
+                    display_instances,
                     water_cut_overlays=water_cut_overlays or None,
                     status_text=status_text,
                 )
                 hub.set_frame(
                     encode_jpeg(preview, args.stream_width, args.jpeg_quality),
                     build_status(
-                        instances=instances,
+                        instances=display_instances,
                         measured_fps=fps_value,
                         water_cut_overlays=water_cut_overlays,
                         computing=True,
@@ -420,7 +435,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 print("Water-cut requested...")
                 water_cut_overlays = compute_water_cut_overlays(
                     image,
-                    instances,
+                    raw_instances,
                     sam_refiner,
                     calib=calib,
                 )
@@ -429,7 +444,7 @@ def run_stream(args: argparse.Namespace) -> int:
 
             frame = compose_stream_frame(
                 image,
-                instances,
+                display_instances,
                 water_cut_overlays=water_cut_overlays or None,
             )
             jpeg = encode_jpeg(frame, args.stream_width, args.jpeg_quality)
@@ -441,7 +456,7 @@ def run_stream(args: argparse.Namespace) -> int:
             hub.set_frame(
                 jpeg,
                 build_status(
-                    instances=instances,
+                    instances=display_instances,
                     measured_fps=fps_value,
                     water_cut_overlays=water_cut_overlays,
                     computing=hub.computing_water_cut,
@@ -472,7 +487,7 @@ def main() -> int:
     parser.add_argument("--timeout-ms", type=int, default=1000)
     parser.add_argument("--warmup-frames", type=int, default=3)
     parser.add_argument("--yolo-model", default="yolov8n-seg.pt")
-    parser.add_argument("--yolo-conf", type=float, default=0.25)
+    parser.add_argument("--yolo-conf", type=float, default=0.05)
     parser.add_argument("--yolo-imgsz", type=int, default=640)
     parser.add_argument(
         "--no-mask-refine",
@@ -482,7 +497,7 @@ def main() -> int:
     parser.add_argument(
         "--mask-refine-pad",
         type=int,
-        default=80,
+        default=100,
         help="Padding (px) around YOLO bbox for Otsu refinement (default: 80).",
     )
     parser.add_argument(
@@ -505,6 +520,23 @@ def main() -> int:
         "--capture-output-dir",
         default="output/captures",
         help="Directory for POST /capture saved JPEG files.",
+    )
+    parser.add_argument(
+        "--smooth-alpha",
+        type=float,
+        default=0.25,
+        help="EMA weight for new live L/W samples (0.01-1, lower = smoother).",
+    )
+    parser.add_argument(
+        "--smooth-max-miss",
+        type=int,
+        default=3,
+        help="Drop a track after this many consecutive unmatched frames.",
+    )
+    parser.add_argument(
+        "--no-smooth",
+        action="store_true",
+        help="Disable temporal smoothing of live L/W readouts.",
     )
     args = parser.parse_args()
 
