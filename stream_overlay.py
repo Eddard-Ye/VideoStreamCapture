@@ -11,12 +11,20 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 from color_viewer import SegInstance
-from object_measure import format_lw_label, oriented_box_from_mask
+from object_measure import (
+    format_instance_height_display,
+    format_lxwxh_stream_label,
+    format_plane_depth_stream_label,
+    instance_height_mm,
+    oriented_box_from_mask,
+)
 from sam_centerline import WaterCutAnalysis, draw_water_cut_overlay
 from yolo_sam_refine import SamRefiner
 
 SAM_COLOR_BGR = SamRefiner.SAM_COLOR_BGR
 LABEL_COLOR_BGR = (180, 60, 20)  # deep blue — high contrast on light scenes
+PLANE_SAMPLE_MARKER_BGR = (0, 0, 255)  # red dots for table plane samples
+MIN_HEIGHT_MARKER_BGR = (255, 80, 0)  # bright blue dots for peak-height pixels
 LABEL_OUTLINE_BGR = (255, 255, 255)
 YOLO_CONTOUR_BGR = (0, 255, 0)
 YOLO_OBB_BGR = (0, 220, 120)
@@ -57,11 +65,19 @@ def format_water_cut_record_line(
 
 
 def format_capture_lw_label(instance: SegInstance) -> str:
-    if np.isfinite(instance.length_mm) and np.isfinite(instance.width_mm):
-        return f"LxW: {instance.length_mm:.1f}mm x {instance.width_mm:.1f}mm"
-    if np.isfinite(instance.length_px) and np.isfinite(instance.width_px):
-        return f"LxW: {instance.length_px:.1f}px x {instance.width_px:.1f}px"
-    return "LxW: ---"
+    height_mm = (
+        instance.peak_height_mm
+        if np.isfinite(instance.peak_height_mm)
+        else instance.height_mm
+    )
+    metric = format_lxwxh_stream_label(
+        instance.length_mm,
+        instance.width_mm,
+        height_mm,
+        instance.length_px,
+        instance.width_px,
+    )
+    return metric or "LxWxH: ---"
 
 
 def format_temperature_display(temperature: str) -> str:
@@ -76,21 +92,20 @@ def format_temperature_display(temperature: str) -> str:
 def build_capture_record_info(
     instances: list[SegInstance],
     *,
-    height: str,
     temperature: str,
     weight: str,
     water_cut_enabled: bool = False,
     water_cut_overlays: list["WaterCutOverlay"] | None = None,
 ) -> CaptureRecordInfo:
     primary = instances[0] if instances else None
-    lw_text = format_capture_lw_label(primary) if primary is not None else "LxW: ---"
+    lw_text = format_capture_lw_label(primary) if primary is not None else "LxWxH: ---"
     water_cut_line, water_cut_mm = format_water_cut_record_line(
         water_cut_overlays,
         enabled=water_cut_enabled,
     )
 
     return CaptureRecordInfo(
-        height=height,
+        height=format_instance_height_display(primary) if primary is not None else "---",
         temperature=temperature,
         weight=weight,
         lw_text=lw_text,
@@ -132,19 +147,22 @@ def _bgr_to_rgb(color: tuple[int, int, int]) -> tuple[int, int, int]:
     return red, green, blue
 
 
-def _draw_record_info_block(frame: np.ndarray, lines: list[str]) -> None:
+def _draw_record_info_block(
+    frame: np.ndarray,
+    lines: list[str],
+    *,
+    label_size_factor: float = LABEL_SIZE_FACTOR,
+) -> None:
     """Draw capture summary text; uses Pillow so Unicode such as °C renders correctly."""
     if not lines:
         return
 
-    font_size = max(
-        18,
-        int(round(24 * LABEL_SIZE_FACTOR * max(0.7, min(1.0, frame.shape[1] / 900.0)))),
-    )
+    width_factor = max(0.75, min(1.0, frame.shape[1] / 900.0))
+    font_size = max(12, int(round(14 * label_size_factor * width_factor)))
     font = _record_overlay_font(font_size)
-    stroke = max(2, int(round(2 * LABEL_SIZE_FACTOR)))
-    pad = int(round(12 * LABEL_SIZE_FACTOR))
-    line_gap = int(round(8 * LABEL_SIZE_FACTOR))
+    stroke = max(1, int(round(label_size_factor)))
+    pad = max(4, int(round(6 * label_size_factor)))
+    line_gap = max(2, int(round(4 * label_size_factor)))
 
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pil = Image.fromarray(rgb)
@@ -165,8 +183,8 @@ def _draw_record_info_block(frame: np.ndarray, lines: list[str]) -> None:
 
     block_w = max_text_w + pad * 2
     block_h = total_text_h + pad * 2
-    x0 = int(round(12 * LABEL_SIZE_FACTOR))
-    y0 = frame.shape[0] - block_h - int(round(12 * LABEL_SIZE_FACTOR))
+    x0 = int(round(10 * label_size_factor))
+    y0 = frame.shape[0] - block_h - int(round(10 * label_size_factor))
 
     bg_rgb = _bgr_to_rgb(RECORD_BG_BGR)
     text_rgb = _bgr_to_rgb(RECORD_COLOR_BGR)
@@ -174,7 +192,11 @@ def _draw_record_info_block(frame: np.ndarray, lines: list[str]) -> None:
     border_rgb = (255, 180, 0)  # BGR (0, 180, 255)
 
     draw.rectangle((x0, y0, x0 + block_w, y0 + block_h), fill=bg_rgb)
-    draw.rectangle((x0, y0, x0 + block_w, y0 + block_h), outline=border_rgb, width=2)
+    draw.rectangle(
+        (x0, y0, x0 + block_w, y0 + block_h),
+        outline=border_rgb,
+        width=max(1, int(round(1.5 * label_size_factor))),
+    )
 
     text_x = x0 + pad
     text_y = y0 + pad
@@ -215,13 +237,53 @@ def _put_text_outlined(
     cv2.putText(image_bgr, text, org, font, scale, color, thickness, cv2.LINE_AA)
 
 
-def _format_lw_px_label(instance: SegInstance) -> str | None:
-    return format_lw_label(
+def _format_lwh_stream_label(instance: SegInstance) -> str | None:
+    height_mm = (
+        instance.peak_height_mm
+        if np.isfinite(instance.peak_height_mm)
+        else instance.height_mm
+    )
+    return format_lxwxh_stream_label(
         instance.length_mm,
         instance.width_mm,
+        height_mm,
         instance.length_px,
         instance.width_px,
     )
+
+
+def _draw_plane_sample_markers(frame: np.ndarray, instances: list[SegInstance]) -> None:
+    radius = max(4, int(round(5 * LABEL_SIZE_FACTOR * 0.65)))
+    outline = max(1, radius // 3)
+    for instance in instances:
+        for u, v in instance.plane_sample_points:
+            center = (int(u), int(v))
+            cv2.circle(frame, center, radius + outline, LABEL_OUTLINE_BGR, -1, cv2.LINE_AA)
+            cv2.circle(frame, center, radius, PLANE_SAMPLE_MARKER_BGR, -1, cv2.LINE_AA)
+
+
+def _draw_peak_height_markers(frame: np.ndarray, instances: list[SegInstance]) -> None:
+    """Paint all peak-height pixels blue; avoid per-pixel white outlines that merge into white blobs."""
+    height, width = frame.shape[:2]
+    for instance in instances:
+        points = instance.peak_height_points
+        if not points:
+            continue
+
+        peak_mask = np.zeros((height, width), dtype=np.uint8)
+        for u, v in points:
+            if 0 <= u < width and 0 <= v < height:
+                peak_mask[v, u] = 255
+
+        if not np.any(peak_mask):
+            continue
+
+        # Slightly thicken sparse peaks so a single pixel stays visible on stream.
+        if len(points) <= 8:
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+            peak_mask = cv2.dilate(peak_mask, kernel, iterations=1)
+
+        frame[peak_mask > 0] = MIN_HEIGHT_MARKER_BGR
 
 
 def _draw_instance_contours(frame: np.ndarray, instances: list[SegInstance]) -> None:
@@ -252,27 +314,44 @@ def _draw_instance_labels(
     frame: np.ndarray,
     instances: list[SegInstance],
     water_cut_overlays: list[WaterCutOverlay] | None,
+    *,
+    label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> None:
-    label_scale = LABEL_SIZE_FACTOR * max(0.75, min(1.2, frame.shape[1] / 550.0))
+    label_scale = label_size_factor * max(0.75, min(1.2, frame.shape[1] / 550.0))
     line_height = max(24, int(round(34 * label_scale)))
-    x0 = int(round(12 * LABEL_SIZE_FACTOR))
+    x0 = int(round(12 * label_size_factor))
     y0 = max(26, int(round(30 * label_scale)))
 
-    for index, instance in enumerate(instances):
-        metric = _format_lw_px_label(instance)
+    line_index = 0
+    thickness = max(2, int(round(2 * label_size_factor)))
+    for instance in instances:
+        metric = _format_lwh_stream_label(instance)
         if metric is None:
             continue
-        text = f"{index}: {instance.class_name} {instance.confidence:.2f} | {metric}"
+        text = f"{line_index}: {metric}"
         _put_text_outlined(
             frame,
             text,
-            (x0, y0 + index * line_height),
+            (x0, y0 + line_index * line_height),
             scale=label_scale,
-            thickness=max(2, int(round(2 * LABEL_SIZE_FACTOR))),
+            thickness=thickness,
         )
+        line_index += 1
+
+        plane_label = format_plane_depth_stream_label(instance.z_plane_ref_mm)
+        if plane_label is not None:
+            text = f"{line_index}: {plane_label}"
+            _put_text_outlined(
+                frame,
+                text,
+                (x0, y0 + line_index * line_height),
+                scale=label_scale,
+                thickness=thickness,
+            )
+            line_index += 1
 
     if water_cut_overlays:
-        base_y = y0 + len(instances) * line_height + int(round(8 * LABEL_SIZE_FACTOR))
+        base_y = y0 + line_index * line_height + int(round(8 * label_size_factor))
         for index, item in enumerate(water_cut_overlays):
             wc = item.water_cut
             if np.isfinite(wc.water_cut_width_mm):
@@ -284,7 +363,7 @@ def _draw_instance_labels(
                 text,
                 (x0, base_y + index * line_height),
                 scale=label_scale,
-                thickness=max(2, int(round(2 * LABEL_SIZE_FACTOR))),
+                thickness=max(2, int(round(2 * label_size_factor))),
                 color=LABEL_COLOR_BGR,
             )
 
@@ -294,6 +373,20 @@ class WaterCutOverlay:
     sam_mask: np.ndarray
     water_cut: WaterCutAnalysis
     box_pts: np.ndarray | None
+    prompt_coords: np.ndarray | None = None
+    prompt_labels: np.ndarray | None = None
+
+
+def _draw_water_cut_sam_prompts(frame: np.ndarray, overlays: list[WaterCutOverlay]) -> None:
+    for item in overlays:
+        if item.prompt_coords is None or item.prompt_labels is None:
+            continue
+        labels = np.asarray(item.prompt_labels).reshape(-1)
+        coords = np.asarray(item.prompt_coords, dtype=np.float32).reshape(-1, 2)
+        fg = labels == 1
+        if not np.any(fg):
+            continue
+        SamRefiner.draw_prompts(frame, coords[fg], labels[fg])
 
 
 def compose_record_frame(
@@ -302,13 +395,19 @@ def compose_record_frame(
     record_info: CaptureRecordInfo,
     *,
     water_cut_overlays: list[WaterCutOverlay] | None = None,
+    label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> np.ndarray:
     frame = compose_stream_frame(
         image_bgr,
         instances,
         water_cut_overlays=water_cut_overlays,
+        label_size_factor=label_size_factor,
     )
-    _draw_record_info_block(frame, record_info_lines(record_info))
+    _draw_record_info_block(
+        frame,
+        record_info_lines(record_info),
+        label_size_factor=label_size_factor,
+    )
     return frame
 
 
@@ -318,12 +417,20 @@ def compose_stream_frame(
     *,
     water_cut_overlays: list[WaterCutOverlay] | None = None,
     status_text: str | None = None,
+    label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> np.ndarray:
     frame = image_bgr.copy()
 
     _draw_instance_contours(frame, instances)
     _draw_instance_oriented_boxes(frame, instances)
-    _draw_instance_labels(frame, instances, water_cut_overlays)
+    _draw_plane_sample_markers(frame, instances)
+    _draw_peak_height_markers(frame, instances)
+    _draw_instance_labels(
+        frame,
+        instances,
+        water_cut_overlays,
+        label_size_factor=label_size_factor,
+    )
 
     if water_cut_overlays:
         sam_blend = frame.astype(np.float32)
@@ -340,21 +447,29 @@ def compose_stream_frame(
                 draw_centerline=False,
                 clip_box=item.box_pts,
             )
+        _draw_water_cut_sam_prompts(frame, water_cut_overlays)
 
     if status_text:
         font = cv2.FONT_HERSHEY_SIMPLEX
-        scale = LABEL_SIZE_FACTOR * max(1.2, min(2.2, frame.shape[1] / 500.0))
-        thickness = max(3, int(round(scale * 2)))
+        width_factor = max(0.75, min(1.0, frame.shape[1] / 900.0))
+        scale = label_size_factor * max(0.55, min(0.95, width_factor))
+        thickness = max(1, int(round(scale * 1.5)))
         (tw, th), baseline = cv2.getTextSize(status_text, font, scale, thickness)
         h, w = frame.shape[:2]
-        pad_x = int(round(64 * LABEL_SIZE_FACTOR))
-        pad_y = int(round(48 * LABEL_SIZE_FACTOR))
+        pad_x = max(10, int(round(18 * label_size_factor)))
+        pad_y = max(8, int(round(12 * label_size_factor)))
         bx0 = max(0, (w - tw) // 2 - pad_x)
         by0 = max(0, (h - th) // 2 - pad_y)
         bx1 = min(w, bx0 + tw + pad_x * 2)
         by1 = min(h, by0 + th + pad_y * 2 + baseline)
         cv2.rectangle(frame, (bx0, by0), (bx1, by1), (30, 30, 30), -1)
-        cv2.rectangle(frame, (bx0, by0), (bx1, by1), (0, 180, 255), int(round(4 * LABEL_SIZE_FACTOR)))
+        cv2.rectangle(
+            frame,
+            (bx0, by0),
+            (bx1, by1),
+            (0, 180, 255),
+            max(1, int(round(2 * label_size_factor))),
+        )
         _put_text_outlined(
             frame,
             status_text,

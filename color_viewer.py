@@ -229,6 +229,10 @@ class SegInstance:
     height_mm: float = float("nan")
     z_object_mm: float = float("nan")
     angle_deg: float = float("nan")
+    peak_height_mm: float = float("nan")
+    peak_height_points: list[tuple[int, int]] = field(default_factory=list)
+    z_plane_ref_mm: float = float("nan")
+    plane_sample_points: list[tuple[int, int]] = field(default_factory=list)
     sam_regions: list[SamSubRegion] = field(default_factory=list)
     sam_prompt_coords: list[tuple[float, float]] = field(default_factory=list)
     sam_prompt_labels: list[int] = field(default_factory=list)
@@ -257,6 +261,18 @@ def deduplicate_seg_instances(
         if all(_mask_iou(candidate.mask, existing.mask) < iou_threshold for existing in kept):
             kept.append(candidate)
     return kept
+
+
+def keep_top_confidence_instances(
+    instances: list[SegInstance],
+    *,
+    max_count: int = 1,
+) -> list[SegInstance]:
+    """Keep up to *max_count* detections with the highest confidence."""
+    if max_count <= 0 or not instances:
+        return []
+    ranked = sorted(instances, key=lambda item: item.confidence, reverse=True)
+    return ranked[:max_count]
 
 
 class YoloSegmenter:
@@ -296,13 +312,26 @@ class YoloSegmenter:
             print("YOLO model ready.")
         return self._model
 
+    def _apply_otsu_refine(self, image_bgr: np.ndarray, mask_bool: np.ndarray) -> np.ndarray:
+        return refine_mask_otsu(
+            image_bgr,
+            mask_bool,
+            pad=self.mask_refine_pad,
+        )
+
     def segment_all(
         self,
         image_bgr: np.ndarray,
         roi: RoiRect,
         imgsz: int | None = None,
         conf: float | None = None,
+        refine_top_n: int | None = None,
     ) -> list[SegInstance]:
+        """Run YOLO segmentation inside *roi*.
+
+        When *refine_top_n* is set with Otsu refinement enabled, Otsu runs only on
+        the top-N highest-confidence instances after deduplication (not on every box).
+        """
         model = self._get_model()
         roi_image = roi.crop(image_bgr)
         if roi_image.size == 0:
@@ -329,6 +358,7 @@ class YoloSegmenter:
         roi_height, roi_width = roi_image.shape[:2]
         names = result.names or {}
         instances: list[SegInstance] = []
+        defer_otsu = self.mask_refine == "otsu" and refine_top_n is not None
 
         for index in range(len(result.boxes)):
             mask_tensor = result.masks.data[index]
@@ -338,12 +368,8 @@ class YoloSegmenter:
             class_id = int(result.boxes.cls[index].item())
             confidence = float(result.boxes.conf[index].item())
             mask_bool = roi.embed_mask(mask > 0.5, full_height, full_width)
-            if self.mask_refine == "otsu":
-                mask_bool = refine_mask_otsu(
-                    image_bgr,
-                    mask_bool,
-                    pad=self.mask_refine_pad,
-                )
+            if self.mask_refine == "otsu" and not defer_otsu:
+                mask_bool = self._apply_otsu_refine(image_bgr, mask_bool)
             instances.append(
                 SegInstance(
                     mask=mask_bool,
@@ -352,7 +378,19 @@ class YoloSegmenter:
                     confidence=confidence,
                 )
             )
-        return deduplicate_seg_instances(instances)
+
+        instances = deduplicate_seg_instances(instances)
+        if not defer_otsu or not instances:
+            return instances
+
+        top_n = max(1, int(refine_top_n))
+        ranked = sorted(instances, key=lambda item: item.confidence, reverse=True)
+        refine_ids = {id(item) for item in ranked[:top_n]}
+        for instance in instances:
+            if id(instance) not in refine_ids:
+                continue
+            instance.mask = self._apply_otsu_refine(image_bgr, instance.mask)
+        return instances
 
 
 class ColorViewer:

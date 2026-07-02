@@ -101,10 +101,12 @@ class TrackSmoother:
         alpha: float = 0.25,
         max_miss: int = 3,
         iou_threshold: float = 0.15,
+        max_tracks: int = 0,
     ) -> None:
         self.alpha = float(np.clip(alpha, 0.01, 1.0))
         self.max_miss = max(1, int(max_miss))
         self.iou_threshold = float(np.clip(iou_threshold, 0.0, 1.0))
+        self.max_tracks = max(0, int(max_tracks))
         self._tracks: list[_TrackState] = []
         self._next_track_id = 1
 
@@ -207,8 +209,32 @@ class TrackSmoother:
             box_pts=box_pts,
         )
 
+    def _update_single_object(self, instances: list[SegInstance]) -> list[SegInstance]:
+        """Smooth only the highest-confidence detection; keep at most one track."""
+        if not instances:
+            if self._tracks:
+                self._tracks[0].miss_count += 1
+                if self._tracks[0].miss_count > self.max_miss:
+                    self._tracks.clear()
+            return []
+
+        instance = max(instances, key=lambda item: item.confidence)
+        bbox = _mask_bbox(instance.mask)
+        if not self._tracks:
+            track = self._new_track(instance, bbox)
+            self._tracks = [track]
+            return [instance]
+
+        track = self._tracks[0]
+        self._update_track(track, instance, bbox)
+        self._tracks = [track]
+        return [self._display_instance(instance, track)]
+
     def update(self, instances: list[SegInstance]) -> list[SegInstance]:
         """Return display copies with temporally smoothed metrics."""
+        if self.max_tracks == 1:
+            return self._update_single_object(instances)
+
         if not instances:
             for track in self._tracks:
                 track.miss_count += 1

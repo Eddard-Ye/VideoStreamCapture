@@ -21,7 +21,13 @@ from camera_calib_2d import (
 )
 from capture_2d import close_camera, fetch_frame, list_devices, open_camera
 from color_viewer import RoiRect, SegInstance, YoloSegmenter
-from object_measure import format_lw_label, oriented_box_from_mask, oriented_box_metrics_from_mask
+from object_measure import (
+    format_lw_label,
+    format_lxwxh_stream_label,
+    instance_height_mm,
+    oriented_box_from_mask,
+    oriented_box_metrics_from_mask,
+)
 from sam_centerline import analyze_water_cut
 from stream_overlay import (
     WaterCutOverlay,
@@ -87,18 +93,39 @@ def build_status(
             "length_px": None if not np.isfinite(instance.length_px) else round(instance.length_px, 1),
             "width_px": None if not np.isfinite(instance.width_px) else round(instance.width_px, 1),
         }
-        label = format_lw_label(
+        label = format_lxwxh_stream_label(
             instance.length_mm,
             instance.width_mm,
+            instance.peak_height_mm
+            if np.isfinite(instance.peak_height_mm)
+            else instance.height_mm,
             instance.length_px,
             instance.width_px,
         )
+        if label is None:
+            label = format_lw_label(
+                instance.length_mm,
+                instance.width_mm,
+                instance.length_px,
+                instance.width_px,
+            )
         if label:
             item["size_label"] = label
         if np.isfinite(instance.length_mm) and np.isfinite(instance.width_mm):
             item["length"] = round(instance.length_mm, 1)
             item["width"] = round(instance.width_mm, 1)
             item["unit"] = "mm"
+        height_mm = instance_height_mm(instance)
+        if np.isfinite(height_mm):
+            item["height_mm"] = round(float(height_mm), 1)
+        if np.isfinite(instance.peak_height_mm):
+            item["peak_height_mm"] = round(float(instance.peak_height_mm), 2)
+        if instance.peak_height_points:
+            item["peak_height_px"] = [[int(u), int(v)] for u, v in instance.peak_height_points]
+        if np.isfinite(instance.z_plane_ref_mm):
+            item["z_plane_ref_mm"] = round(float(instance.z_plane_ref_mm), 2)
+        if instance.plane_sample_points:
+            item["plane_sample_px"] = [[int(u), int(v)] for u, v in instance.plane_sample_points]
         items.append(item)
 
     cuts = []
@@ -162,6 +189,16 @@ def compute_water_cut_overlays(
                 sam_mask=sam_region.mask.copy(),
                 water_cut=water_cut,
                 box_pts=None if box_pts is None else box_pts.copy(),
+                prompt_coords=(
+                    None
+                    if sam_region.prompt_coords is None
+                    else np.asarray(sam_region.prompt_coords, dtype=np.float32).copy()
+                ),
+                prompt_labels=(
+                    None
+                    if sam_region.prompt_labels is None
+                    else np.asarray(sam_region.prompt_labels, dtype=np.int32).copy()
+                ),
             )
         )
         if calib is not None and np.isfinite(water_cut.water_cut_width_mm):
@@ -221,7 +258,6 @@ def process_capture_request(
 
         record_info = build_capture_record_info(
             instances,
-            height=request.height,
             temperature=request.temperature,
             weight=request.weight,
             water_cut_enabled=request.water_cut,
@@ -243,6 +279,7 @@ def process_capture_request(
             if record_info.water_cut_mm is None or not np.isfinite(record_info.water_cut_mm)
             else round(float(record_info.water_cut_mm), 1)
         )
+        primary_height_mm = None if primary is None else instance_height_mm(primary)
         return {
             "ok": True,
             "fileName": file_name,
@@ -250,7 +287,7 @@ def process_capture_request(
             "water_cut": request.water_cut,
             "record": {
                 "lw": record_info.lw_text,
-                "height": request.height,
+                "height": record_info.height,
                 "temperature": format_temperature_display(request.temperature),
                 "weight": request.weight,
                 "water_cut": record_info.water_cut_line,
@@ -265,6 +302,11 @@ def process_capture_request(
                 None
                 if primary is None or not np.isfinite(primary.width_mm)
                 else round(float(primary.width_mm), 1)
+            ),
+            "height_mm": (
+                None
+                if primary_height_mm is None or not np.isfinite(primary_height_mm)
+                else round(float(primary_height_mm), 1)
             ),
             "water_cut_mm": water_cut_mm if request.water_cut else None,
         }
