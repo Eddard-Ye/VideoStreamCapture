@@ -580,3 +580,573 @@
 [07/01 23:59:56.697023][warning][17868][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60002ms**]
 [07/02 00:00:56.766022][warning][17868][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**420 logs in 60069ms**]
 [07/02 00:01:56.837607][warning][17868][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60071ms**]
+[07/02 18:45:48.485926][warning][13780][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 18:45:48.486067][warning][13780][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 18:45:50.627563][warning][13780][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 18:45:50.627658][warning][13780][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 18:45:52.766907][warning][13780][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 18:45:52.767050][warning][13780][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 18:45:53.042451][warning][13780][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 18:45:53.087935][warning][13780][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 18:45:53.690596][warning][1620][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: TimestampAnomalyDetector.cpp(63)
+ - msg: Timestamp anomaly detected, timestamp: 1782989126932077, cacheTimestamp: 1782989117354927 ,currentDiff: 9577150, maxValidTimestampDiff: 5000000
+ - type: UNKNOWN
+ - status: 101
+[07/02 18:45:53.694597][warning][1620][SensorBase.cpp:432] [AYZR364008E] Execute failure! A libobsensor_exception has occurred!
+ - where: SensorBase.cpp(432):libobsensor::SensorBase::outputFrame
+ - msg: Timestamp anomaly detected, timestamp: 1782989126932077, cacheTimestamp: 1782989117354927 ,currentDiff: 9577150, maxValidTimestampDiff: 5000000
+ - type: class libobsensor::recoverable_exception
+ - status: 101
+[07/02 18:45:53.695055][error][1620][SensorBase.cpp:432] [AYZR364008E] Timestamp anomaly detected, frame: 1782989126932077, sensor: Depth
+[07/02 18:45:55.396487][warning][6924][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 18:45:58.404736][warning][6924][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**26 logs in 3008ms**]
+[07/02 18:46:04.422927][warning][6924][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**60 logs in 6018ms**]
+[07/02 18:46:16.459189][warning][6924][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**120 logs in 12036ms**]
+[07/02 18:46:19.026493][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 18:46:22.108068][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**31 logs in 3081ms**]
+[07/02 18:46:28.161240][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**59 logs in 6053ms**]
+[07/02 18:46:40.163229][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**103 logs in 12001ms**]
+[07/02 18:46:40.567659][warning][18008][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**23 logs in 24108ms, last: 18:46:18.765931**]
+[07/02 18:47:04.200193][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**203 logs in 24036ms**]
+[07/02 18:47:52.296773][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**432 logs in 48097ms**]
+[07/02 18:48:52.319636][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**597 logs in 60022ms**]
+[07/02 18:49:52.388898][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**591 logs in 60069ms**]
+[07/02 18:50:52.450567][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60061ms**]
+[07/02 18:51:52.490433][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**578 logs in 60039ms**]
+[07/02 18:52:07.315993][warning][6924][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 18:52:10.322135][warning][6924][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3006ms**]
+[07/02 18:52:16.436333][warning][22388][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**17 logs in 6114ms, last: 18:52:12.028293**]
+[07/02 18:52:52.575108][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**521 logs in 60084ms**]
+[07/02 18:53:52.676335][warning][13780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**577 logs in 60101ms**]
+[07/02 18:54:52.774133][warning][9932][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**552 logs in 60097ms, last: 18:54:52.650803**]
+[07/02 18:55:41.355366][warning][14620][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**457 logs in 48581ms, last: 18:55:39.798223**]
+[07/02 18:57:20.497891][warning][10564][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 18:57:20.498012][warning][10564][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 18:57:22.683178][warning][10564][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 18:57:22.683295][warning][10564][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 18:57:24.843611][warning][10564][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 18:57:24.843900][warning][10564][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 18:57:25.072282][warning][10564][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 18:57:25.124732][warning][10564][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 18:57:27.402714][warning][13980][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 18:57:30.411458][warning][13980][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3008ms**]
+[07/02 18:57:36.429721][warning][13980][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**55 logs in 6018ms**]
+[07/02 18:57:43.784634][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 18:57:46.828331][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**29 logs in 3043ms**]
+[07/02 18:57:48.542168][warning][18856][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**70 logs in 12112ms, last: 18:57:43.450750**]
+[07/02 18:57:52.854840][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**58 logs in 6026ms**]
+[07/02 18:58:04.875735][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**95 logs in 12020ms**]
+[07/02 18:58:18.991085][warning][7904][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**7 logs in 30448ms, last: 18:57:55.587240**]
+[07/02 18:58:28.913925][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**215 logs in 24038ms**]
+[07/02 18:59:16.983066][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**435 logs in 48069ms**]
+[07/02 19:00:17.050638][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**568 logs in 60067ms**]
+[07/02 19:01:17.137044][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**566 logs in 60086ms**]
+[07/02 19:02:17.200565][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**577 logs in 60063ms**]
+[07/02 19:03:17.213389][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**571 logs in 60012ms**]
+[07/02 19:04:17.253951][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**575 logs in 60040ms**]
+[07/02 19:05:17.306111][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**568 logs in 60052ms**]
+[07/02 19:06:17.326022][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**569 logs in 60019ms**]
+[07/02 19:07:17.413467][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**553 logs in 60087ms**]
+[07/02 19:08:17.495787][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**557 logs in 60082ms**]
+[07/02 19:09:17.593050][warning][2548][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**572 logs in 60097ms, last: 19:09:17.468101**]
+[07/02 19:10:17.658209][warning][9328][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**567 logs in 60065ms, last: 19:10:17.581528**]
+[07/02 19:10:21.531964][warning][13980][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 19:10:25.306842][warning][8728][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**5 logs in 3774ms, last: 19:10:22.334294**]
+[07/02 19:11:17.702901][warning][17028][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**567 logs in 60044ms, last: 19:11:17.641737**]
+[07/02 19:12:17.709153][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60006ms**]
+[07/02 19:13:17.714166][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**596 logs in 60005ms**]
+[07/02 19:14:17.731984][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**597 logs in 60017ms**]
+[07/02 19:15:17.798050][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60066ms**]
+[07/02 19:16:17.846461][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60048ms**]
+[07/02 19:17:17.923018][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60076ms**]
+[07/02 19:18:17.928769][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**591 logs in 60005ms**]
+[07/02 19:19:18.005954][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60077ms**]
+[07/02 19:20:18.060117][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60054ms**]
+[07/02 19:21:18.084105][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60023ms**]
+[07/02 19:22:18.134126][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**598 logs in 60050ms**]
+[07/02 19:23:18.200791][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**597 logs in 60066ms**]
+[07/02 19:24:18.268537][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**597 logs in 60067ms**]
+[07/02 19:25:18.293158][warning][10564][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**590 logs in 60024ms**]
+[07/02 19:25:58.316090][warning][2420][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**384 logs in 40022ms, last: 19:25:57.378006**]
+[07/02 19:26:16.719100][warning][7572][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:26:16.719531][warning][7572][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:26:18.911196][warning][7572][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:26:18.911315][warning][7572][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:26:21.072853][warning][7572][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:26:21.073249][warning][7572][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:26:21.301059][warning][7572][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 19:26:21.342052][warning][7572][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 19:26:23.606200][warning][12260][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 19:26:26.615177][warning][12260][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3008ms**]
+[07/02 19:26:30.251572][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 19:26:32.724052][warning][12976][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**34 logs in 6108ms, last: 19:26:30.025273**]
+[07/02 19:26:33.268345][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**30 logs in 3016ms**]
+[07/02 19:26:39.318877][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**60 logs in 6050ms**]
+[07/02 19:26:51.383623][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**111 logs in 12064ms**]
+[07/02 19:27:15.406605][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**218 logs in 24022ms**]
+[07/02 19:28:03.477172][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**477 logs in 48070ms**]
+[07/02 19:29:03.552655][warning][7572][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**580 logs in 60075ms**]
+[07/02 19:29:15.294380][warning][19164][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**86 logs in 11741ms, last: 19:29:14.441165**]
+[07/02 19:29:22.876478][warning][4232][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:29:22.876930][warning][4232][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:29:25.169601][warning][4232][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:29:25.169784][warning][4232][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:29:27.444822][warning][4232][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:29:27.445258][warning][4232][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:29:27.681180][warning][4232][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 19:29:27.722212][warning][4232][SensorBase.cpp:147] [AYZR364008E] Failed to update default stream profile for sensor due to no matching stream profile found
+[07/02 19:29:29.866065][warning][11244][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 19:29:32.874732][warning][11244][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3008ms**]
+[07/02 19:29:37.563164][warning][4232][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 19:29:38.982006][warning][21812][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**44 logs in 6107ms, last: 19:29:37.288538**]
+[07/02 19:29:40.620193][warning][4232][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**27 logs in 3057ms**]
+[07/02 19:29:46.661246][warning][4232][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**56 logs in 6041ms**]
+[07/02 19:29:58.685287][warning][4232][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**114 logs in 12024ms**]
+[07/02 19:30:22.795443][warning][4232][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**237 logs in 24110ms**]
+[07/02 19:31:10.847345][warning][4232][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**465 logs in 48051ms**]
+[07/02 19:31:24.513782][warning][2044][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**83 logs in 13666ms, last: 19:31:20.263032**]
+[07/02 19:57:42.754754][warning][16580][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:57:42.754877][warning][16580][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:57:44.963257][warning][16580][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:57:44.963431][warning][16580][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:57:47.096857][warning][16580][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 19:57:47.096980][warning][16580][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 19:57:50.069617][warning][11556][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 19:57:53.072626][warning][11556][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**21 logs in 3003ms**]
+[07/02 19:57:58.377332][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 19:57:59.173356][warning][4084][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**35 logs in 6100ms, last: 19:57:58.077374**]
+[07/02 19:58:01.507949][warning][10088][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**21 logs in 3130ms, last: 19:58:01.337104**]
+[07/02 19:58:07.519240][warning][3184][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**43 logs in 6011ms, last: 19:58:07.425934**]
+[07/02 19:58:19.558531][warning][21612][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**85 logs in 12039ms, last: 19:58:19.417881**]
+[07/02 19:58:43.563631][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**166 logs in 24005ms**]
+[07/02 19:58:48.828931][warning][11556][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 19:58:51.932039][warning][11556][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**22 logs in 3103ms**]
+[07/02 19:58:58.044340][warning][4348][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**13 logs in 6112ms, last: 19:58:53.734302**]
+[07/02 19:59:31.694296][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**288 logs in 48130ms**]
+[07/02 20:00:31.770410][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**473 logs in 60076ms**]
+[07/02 20:01:12.274787][warning][11556][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 20:01:15.379855][warning][14688][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**14 logs in 3105ms, last: 20:01:13.675577**]
+[07/02 20:01:31.868192][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**562 logs in 60097ms**]
+[07/02 20:02:31.909398][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**558 logs in 60041ms**]
+[07/02 20:03:31.941236][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60031ms**]
+[07/02 20:04:31.998207][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**423 logs in 60056ms**]
+[07/02 20:05:32.013881][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60015ms**]
+[07/02 20:06:32.184724][warning][10908][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60170ms, last: 20:06:31.952938**]
+[07/02 20:07:32.194975][warning][21912][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**414 logs in 60010ms, last: 20:07:32.085983**]
+[07/02 20:08:08.013224][warning][15096][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**225 logs in 35818ms, last: 20:08:06.234875**]
+[07/02 20:38:36.247452][warning][23484][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 20:38:36.247587][warning][23484][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 20:38:38.384389][warning][23484][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 20:38:38.384533][warning][23484][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 20:38:40.545548][warning][23484][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 20:38:40.545814][warning][23484][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 20:38:43.407497][warning][8188][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 20:38:46.511097][warning][8188][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**23 logs in 3103ms**]
+[07/02 20:38:49.773882][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 20:38:52.615887][warning][6164][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**25 logs in 6104ms, last: 20:38:49.613469**]
+[07/02 20:38:52.835579][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**25 logs in 3061ms**]
+[07/02 20:38:58.846404][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**46 logs in 6010ms**]
+[07/02 20:39:10.853022][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**94 logs in 12006ms**]
+[07/02 20:39:34.993787][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**177 logs in 24140ms**]
+[07/02 20:40:23.037393][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**333 logs in 48043ms**]
+[07/02 20:41:23.139610][warning][12676][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**409 logs in 60102ms, last: 20:41:21.803168**]
+[07/02 20:41:23.269356][warning][8188][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 20:41:26.483723][warning][15972][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**2 logs in 3214ms, last: 20:41:23.569600**]
+[07/02 20:42:23.151317][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**411 logs in 60011ms**]
+[07/02 20:43:23.212804][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**426 logs in 60061ms**]
+[07/02 20:44:23.282630][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**442 logs in 60069ms**]
+[07/02 20:45:23.443396][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**456 logs in 60160ms**]
+[07/02 20:46:23.540611][warning][21728][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**457 logs in 60097ms, last: 20:46:23.400442**]
+[07/02 20:47:23.588883][warning][11276][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**457 logs in 60048ms, last: 20:47:23.464813**]
+[07/02 20:48:23.653836][warning][22560][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**462 logs in 60064ms, last: 20:48:23.512343**]
+[07/02 20:49:23.690623][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**424 logs in 60036ms**]
+[07/02 20:50:23.804913][warning][3800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**413 logs in 60114ms, last: 20:50:23.648846**]
+[07/02 20:51:23.865618][warning][15488][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**398 logs in 60060ms, last: 20:51:23.803367**]
+[07/02 20:52:23.877651][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**416 logs in 60012ms**]
+[07/02 20:53:24.023617][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**404 logs in 60145ms**]
+[07/02 20:54:24.121029][warning][6512][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**423 logs in 60097ms, last: 20:54:23.982705**]
+[07/02 20:55:24.149016][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**384 logs in 60028ms**]
+[07/02 20:56:24.287945][warning][3376][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**392 logs in 60138ms, last: 20:56:24.100504**]
+[07/02 20:57:24.312238][warning][1340][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**374 logs in 60024ms, last: 20:57:24.264959**]
+[07/02 20:58:24.378705][warning][3800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**398 logs in 60066ms, last: 20:58:24.239432**]
+[07/02 20:59:24.395945][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60017ms**]
+[07/02 21:00:24.567678][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**416 logs in 60171ms**]
+[07/02 21:01:24.622066][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**420 logs in 60054ms**]
+[07/02 21:02:24.688338][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**412 logs in 60066ms**]
+[07/02 21:03:24.745834][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60057ms**]
+[07/02 21:04:24.894275][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**421 logs in 60148ms**]
+[07/02 21:05:25.009513][warning][21940][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**417 logs in 60115ms, last: 21:05:24.870053**]
+[07/02 21:06:25.025211][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60015ms**]
+[07/02 21:07:25.068371][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**420 logs in 60043ms**]
+[07/02 21:08:25.146882][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60078ms**]
+[07/02 21:09:25.250042][warning][7712][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**417 logs in 60103ms, last: 21:09:25.092876**]
+[07/02 21:10:25.319102][warning][17340][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60069ms, last: 21:10:25.100896**]
+[07/02 21:11:25.321893][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60002ms**]
+[07/02 21:12:25.374849][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**415 logs in 60052ms**]
+[07/02 21:13:25.461826][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60086ms**]
+[07/02 21:14:25.614793][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60152ms**]
+[07/02 21:15:25.716176][warning][18684][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**417 logs in 60101ms, last: 21:15:25.560657**]
+[07/02 21:16:25.728581][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**419 logs in 60012ms**]
+[07/02 21:17:25.803041][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**420 logs in 60074ms**]
+[07/02 21:18:25.840870][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**417 logs in 60037ms**]
+[07/02 21:19:25.955496][warning][16580][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**417 logs in 60114ms, last: 21:19:25.799991**]
+[07/02 21:20:25.968584][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**421 logs in 60013ms**]
+[07/02 21:21:26.019200][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60050ms**]
+[07/02 21:22:26.096634][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**415 logs in 60077ms**]
+[07/02 21:23:26.162421][warning][23484][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**420 logs in 60065ms**]
+[07/02 21:23:36.979305][warning][4268][DeviceBase.cpp:207] Device is deactivated or disconnected while there are still sensors streaming!
+[07/02 21:23:38.764508][warning][23484][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/02 21:23:38.768059][warning][23484][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/02 21:23:38.768913][warning][23484][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/02 21:23:38.769637][warning][23484][Pipeline.cpp:61] [AYZR364008E] Execute failure! A libobsensor_exception has occurred!
+ - where: Pipeline.cpp(61):libobsensor::Pipeline::~Pipeline
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: class libobsensor::recoverable_exception
+ - status: 108
+[07/02 21:23:38.790305][warning][23484][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/02 21:23:38.791849][warning][23484][VideoSensor.cpp:244] [AYZR364008E] Failed to stop video stream port: Camera is no longer connected!
+[07/02 21:23:38.792057][warning][23484][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:0
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/02 21:23:38.792385][warning][23484][VideoSensor.cpp:251] [AYZR364008E] Failed to send stop stream vendor command: Device is deactivated/disconnected! DeviceComponentId:0
+[07/02 21:23:38.815940][warning][23484][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/02 21:23:38.816348][warning][23484][VideoSensor.cpp:244] [AYZR364008E] Failed to stop video stream port: Camera is no longer connected!
+[07/02 21:23:38.816811][warning][23484][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:0
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/02 21:23:38.817262][warning][23484][VideoSensor.cpp:251] [AYZR364008E] Failed to send stop stream vendor command: Device is deactivated/disconnected! DeviceComponentId:0
+[07/02 21:23:38.825217][warning][23484][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/02 21:23:38.826320][warning][23484][WmfUvcDevicePort.cpp:655] Execute failure! A libobsensor_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(655):libobsensor::WmfUvcDevicePort::~WmfUvcDevicePort
+ - msg: Camera is no longer connected!
+ - type: class libobsensor::unrecoverable_exception
+ - status: 113
+[07/02 21:23:38.840102][warning][23484][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/02 21:23:38.840658][warning][23484][WmfUvcDevicePort.cpp:655] Execute failure! A libobsensor_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(655):libobsensor::WmfUvcDevicePort::~WmfUvcDevicePort
+ - msg: Camera is no longer connected!
+ - type: class libobsensor::unrecoverable_exception
+ - status: 113
+[07/02 21:23:39.768625][warning][4980][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**35 logs in 13606ms, last: 21:23:38.485956**]
+[07/02 23:52:11.236408][warning][15156][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 23:52:11.237794][warning][15156][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 23:52:13.358674][warning][15156][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 23:52:13.358778][warning][15156][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 23:52:15.493053][warning][15156][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 23:52:15.493195][warning][15156][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 23:52:18.435311][warning][19300][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 23:52:21.537607][warning][19300][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**21 logs in 3102ms**]
+[07/02 23:52:27.638731][warning][7676][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**47 logs in 6101ms, last: 23:52:27.443656**]
+[07/02 23:52:34.385912][warning][15156][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 23:52:37.401566][warning][15156][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**24 logs in 3015ms**]
+[07/02 23:52:39.652135][warning][18908][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**53 logs in 12013ms, last: 23:52:34.150489**]
+[07/02 23:52:43.494726][warning][15156][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**48 logs in 6093ms**]
+[07/02 23:52:55.504832][warning][15156][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**85 logs in 12010ms**]
+[07/02 23:53:19.524068][warning][15156][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**188 logs in 24019ms**]
+[07/02 23:53:42.409286][warning][19848][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**164 logs in 22885ms, last: 23:53:40.243826**]
+[07/02 23:55:27.064944][warning][20312][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 23:55:27.065342][warning][20312][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 23:55:29.329750][warning][20312][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 23:55:29.329883][warning][20312][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 23:55:31.489539][warning][20312][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/02 23:55:31.489961][warning][20312][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/02 23:55:34.450241][warning][18448][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/02 23:55:37.453058][warning][18448][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**24 logs in 3002ms**]
+[07/02 23:55:43.459271][warning][18448][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**60 logs in 6006ms**]
+[07/02 23:55:53.364436][warning][20312][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/02 23:55:55.574502][warning][20512][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**96 logs in 12115ms, last: 23:55:53.068853**]
+[07/02 23:55:56.414046][warning][20312][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**30 logs in 3049ms**]
+[07/02 23:56:02.453014][warning][20312][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**56 logs in 6038ms**]
+[07/02 23:56:14.511868][warning][20312][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**98 logs in 12058ms**]
+[07/02 23:56:38.628658][warning][20588][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**168 logs in 24116ms, last: 23:56:38.440620**]
+[07/02 23:57:26.657308][warning][15432][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**341 logs in 48028ms, last: 23:57:26.579646**]
+[07/02 23:58:26.763267][warning][20312][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**425 logs in 60105ms**]
+[07/02 23:59:26.846366][warning][19424][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**424 logs in 60083ms, last: 23:59:26.707356**]
+[07/03 00:00:26.883944][warning][20312][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**418 logs in 60037ms**]
+[07/03 00:00:33.349724][warning][21844][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**38 logs in 6465ms, last: 00:00:32.279152**]
+[07/03 00:06:24.877674][warning][12508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:06:24.877891][warning][12508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:06:27.027902][warning][12508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:06:27.028270][warning][12508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:06:29.241278][warning][12508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:06:29.241415][warning][12508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:06:32.416442][warning][15072][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 00:06:35.419344][warning][15072][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**21 logs in 3002ms**]
+[07/03 00:06:40.151075][warning][12508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/03 00:06:41.529031][warning][14140][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**31 logs in 6109ms, last: 00:06:39.824323**]
+[07/03 00:06:43.256291][warning][2856][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**21 logs in 3105ms, last: 00:06:43.055074**]
+[07/03 00:06:49.265367][warning][8156][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**43 logs in 6009ms, last: 00:06:49.187724**]
+[07/03 00:07:01.285504][warning][6196][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**84 logs in 12020ms, last: 00:07:01.177405**]
+[07/03 00:07:25.307329][warning][12508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**168 logs in 24021ms**]
+[07/03 00:08:13.460558][warning][12508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**338 logs in 48153ms**]
+[07/03 00:09:13.578019][warning][15824][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**447 logs in 60117ms, last: 00:09:13.422978**]
+[07/03 00:10:13.631976][warning][8168][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**424 logs in 60053ms, last: 00:10:13.461730**]
+[07/03 00:11:13.642775][warning][12508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**425 logs in 60010ms**]
+[07/03 00:12:13.696903][warning][12508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**462 logs in 60054ms**]
+[07/03 00:13:13.812780][warning][9196][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**437 logs in 60115ms, last: 00:13:13.657457**]
+[07/03 00:14:13.815336][warning][12508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**421 logs in 60002ms**]
+[07/03 00:15:13.912428][warning][19300][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**453 logs in 60097ms, last: 00:15:13.804172**]
+[07/03 00:16:13.929776][warning][20916][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**485 logs in 60017ms, last: 00:16:13.883128**]
+[07/03 00:16:27.153529][warning][22720][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**121 logs in 13223ms, last: 00:16:26.462506**]
+[07/03 00:19:02.176797][warning][20668][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:19:02.177222][warning][20668][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:19:04.427132][warning][20668][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:19:04.427293][warning][20668][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:19:06.653709][warning][20668][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:19:06.654115][warning][20668][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:19:09.517013][warning][13788][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 00:19:12.519847][warning][13788][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**23 logs in 3002ms**]
+[07/03 00:19:16.498501][warning][20668][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/03 00:19:18.634234][warning][16892][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**29 logs in 6114ms, last: 00:19:16.223693**]
+[07/03 00:19:19.557411][warning][20668][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**25 logs in 3058ms**]
+[07/03 00:19:25.562352][warning][20668][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**47 logs in 6004ms**]
+[07/03 00:19:37.689088][warning][20668][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**93 logs in 12126ms**]
+[07/03 00:20:01.708179][warning][20668][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**170 logs in 24019ms**]
+[07/03 00:20:14.828583][warning][16780][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**83 logs in 13120ms, last: 00:20:13.516414**]
+[07/03 00:21:49.530558][warning][22508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:21:49.531148][warning][22508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:21:51.780259][warning][22508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:21:51.780411][warning][22508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:21:54.009473][warning][22508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 00:21:54.009651][warning][22508][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 00:21:56.673767][warning][16764][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 00:21:59.676553][warning][16764][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3002ms**]
+[07/03 00:22:04.739718][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/03 00:22:05.780929][warning][10428][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**47 logs in 6104ms, last: 00:22:04.381328**]
+[07/03 00:22:07.824115][warning][16088][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**30 logs in 3084ms, last: 00:22:07.729841**]
+[07/03 00:22:13.829313][warning][15812][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**60 logs in 6005ms, last: 00:22:13.751752**]
+[07/03 00:22:25.850721][warning][17716][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**120 logs in 12021ms, last: 00:22:25.771794**]
+[07/03 00:22:49.870258][warning][11636][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**230 logs in 24019ms, last: 00:22:49.807745**]
+[07/03 00:23:37.896083][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**465 logs in 48025ms**]
+[07/03 00:24:37.912605][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**589 logs in 60016ms**]
+[07/03 00:25:37.980422][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**583 logs in 60067ms**]
+[07/03 00:26:37.986547][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**589 logs in 60006ms**]
+[07/03 00:27:38.089585][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**589 logs in 60103ms**]
+[07/03 00:28:38.105515][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**587 logs in 60015ms**]
+[07/03 00:29:38.194698][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**584 logs in 60089ms**]
+[07/03 00:30:38.225794][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**586 logs in 60031ms**]
+[07/03 00:31:38.312769][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**590 logs in 60086ms**]
+[07/03 00:32:38.360595][warning][22508][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**585 logs in 60047ms**]
+[07/03 11:46:13.960789][warning][3112][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:46:13.960924][warning][3112][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:46:16.110378][warning][3112][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:46:16.110481][warning][3112][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:46:18.264567][warning][3112][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:46:18.264941][warning][3112][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:46:21.396177][warning][25444][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 11:46:24.399105][warning][25444][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**24 logs in 3003ms**]
+[07/03 11:46:30.404752][warning][25444][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**43 logs in 6005ms**]
+[07/03 11:46:37.479523][warning][10952][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**41 logs in 7074ms, last: 11:46:36.210578**]
+[07/03 11:49:16.131737][warning][24800][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:49:16.131974][warning][24800][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:49:18.280170][warning][24800][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:49:18.280550][warning][24800][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:49:20.418759][warning][24800][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:49:20.418881][warning][24800][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:49:23.780074][warning][13980][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 11:49:26.782803][warning][13980][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**21 logs in 3002ms**]
+[07/03 11:49:28.150641][warning][24800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/03 11:49:31.189848][warning][24800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**7 logs in 3039ms**]
+[07/03 11:49:32.889454][warning][24328][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**8 logs in 6106ms, last: 11:49:27.885084**]
+[07/03 11:49:37.351377][warning][24800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**14 logs in 6161ms**]
+[07/03 11:49:49.704676][warning][24800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**30 logs in 12353ms**]
+[07/03 11:50:13.865479][warning][24800][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**58 logs in 24160ms**]
+[07/03 11:50:26.675964][warning][25840][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**25 logs in 12810ms, last: 11:50:24.967565**]
+[07/03 11:50:34.345481][warning][27064][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:50:34.345790][warning][27064][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:50:36.509795][warning][27064][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:50:36.509950][warning][27064][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:50:38.651580][warning][27064][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:50:38.651727][warning][27064][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:50:41.658923][warning][27596][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 11:50:44.661942][warning][27596][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**24 logs in 3003ms**]
+[07/03 11:50:50.599477][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/03 11:50:50.877547][warning][25020][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**42 logs in 6215ms, last: 11:50:50.067530**]
+[07/03 11:50:53.623046][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**21 logs in 3023ms**]
+[07/03 11:50:59.712652][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**47 logs in 6089ms**]
+[07/03 11:51:11.725949][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**94 logs in 12013ms**]
+[07/03 11:51:35.741720][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**184 logs in 24015ms**]
+[07/03 11:52:23.814903][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**386 logs in 48073ms**]
+[07/03 11:53:23.868143][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**523 logs in 60053ms**]
+[07/03 11:54:23.872996][warning][27064][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**559 logs in 60004ms**]
+[07/03 11:55:19.411078][warning][17472][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**530 logs in 55538ms, last: 11:55:18.005266**]
+[07/03 11:55:25.053750][warning][2180][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:55:25.053867][warning][2180][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:55:27.216458][warning][2180][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:55:27.216614][warning][2180][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:55:29.350196][warning][2180][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/03 11:55:29.350663][warning][2180][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/03 11:55:30.151062][warning][23004][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: TimestampAnomalyDetector.cpp(63)
+ - msg: Timestamp anomaly detected, timestamp: 403701877, cacheTimestamp: 393742680 ,currentDiff: 9959197, maxValidTimestampDiff: 5000000
+ - type: UNKNOWN
+ - status: 101
+[07/03 11:55:30.154466][warning][23004][SensorBase.cpp:432] [AYZR364008E] Execute failure! A libobsensor_exception has occurred!
+ - where: SensorBase.cpp(432):libobsensor::SensorBase::outputFrame
+ - msg: Timestamp anomaly detected, timestamp: 403701877, cacheTimestamp: 393742680 ,currentDiff: 9959197, maxValidTimestampDiff: 5000000
+ - type: class libobsensor::recoverable_exception
+ - status: 101
+[07/03 11:55:30.154630][error][23004][SensorBase.cpp:432] [AYZR364008E] Timestamp anomaly detected, frame: 403701877, sensor: Depth
+[07/03 11:55:31.852901][warning][11400][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/03 11:55:34.855500][warning][11400][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3002ms**]
+[07/03 11:55:36.796162][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/03 11:55:40.116102][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**7 logs in 3319ms**]
+[07/03 11:55:40.965515][warning][11092][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**17 logs in 6109ms, last: 11:55:36.558089**]
+[07/03 11:55:46.453214][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**13 logs in 6337ms**]
+[07/03 11:55:58.460159][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**27 logs in 12006ms**]
+[07/03 11:56:22.486085][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**54 logs in 24025ms**]
+[07/03 11:57:10.748317][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**113 logs in 48262ms**]
+[07/03 11:58:10.946857][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60198ms**]
+[07/03 11:59:10.967470][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60020ms**]
+[07/03 12:00:10.999335][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**141 logs in 60031ms**]
+[07/03 12:01:11.417352][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**142 logs in 60418ms**]
+[07/03 12:02:11.782820][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60365ms**]
+[07/03 12:03:12.181389][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**142 logs in 60398ms**]
+[07/03 12:04:12.536513][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60355ms**]
+[07/03 12:05:12.767986][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**141 logs in 60231ms**]
+[07/03 12:06:12.861215][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60093ms**]
+[07/03 12:07:13.054888][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60193ms**]
+[07/03 12:08:13.201614][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60146ms**]
+[07/03 12:09:13.547353][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**139 logs in 60345ms**]
+[07/03 12:10:13.699529][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60152ms**]
+[07/03 12:11:14.076528][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60376ms**]
+[07/03 12:12:14.155780][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**139 logs in 60079ms**]
+[07/03 12:13:14.409851][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**139 logs in 60254ms**]
+[07/03 12:14:14.455575][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**138 logs in 60045ms**]
+[07/03 12:15:14.811609][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60356ms**]
+[07/03 12:16:15.070277][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60258ms**]
+[07/03 12:17:15.360279][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60290ms**]
+[07/03 12:18:15.377879][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60017ms**]
+[07/03 12:19:15.559533][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**139 logs in 60181ms**]
+[07/03 12:20:15.597734][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60038ms**]
+[07/03 12:21:15.784645][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**140 logs in 60186ms**]
+[07/03 12:22:16.209815][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**139 logs in 60425ms**]
+[07/03 12:23:16.476222][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**143 logs in 60266ms**]
+[07/03 12:24:16.754522][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**144 logs in 60278ms**]
+[07/03 12:25:17.034744][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**146 logs in 60280ms**]
+[07/03 12:26:17.051544][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**146 logs in 60016ms**]
+[07/03 12:27:17.323533][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**147 logs in 60271ms**]
+[07/03 12:28:17.512253][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**147 logs in 60188ms**]
+[07/03 12:29:17.587902][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**144 logs in 60075ms**]
+[07/03 12:30:17.642822][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**157 logs in 60054ms**]
+[07/03 12:31:17.657775][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**160 logs in 60014ms**]
+[07/03 12:32:17.712839][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**159 logs in 60055ms**]
+[07/03 12:33:17.725769][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**160 logs in 60012ms**]
+[07/03 12:34:17.944042][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**158 logs in 60218ms**]
+[07/03 12:35:18.038840][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**160 logs in 60094ms**]
+[07/03 12:36:18.273029][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**161 logs in 60234ms**]
+[07/03 12:36:36.362984][warning][1620][DeviceBase.cpp:207] Device is deactivated or disconnected while there are still sensors streaming!
+[07/08 16:42:34.714732][warning][2180][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1000 [**53 logs in 446776441ms**]
+[07/08 16:42:34.987549][warning][2180][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/08 16:42:34.988828][warning][2180][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/08 16:42:34.989383][warning][2180][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/08 16:42:34.989853][warning][2180][Pipeline.cpp:61] [AYZR364008E] Execute failure! A libobsensor_exception has occurred!
+ - where: Pipeline.cpp(61):libobsensor::Pipeline::~Pipeline
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: class libobsensor::recoverable_exception
+ - status: 108
+[07/08 16:42:35.005516][warning][2180][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/08 16:42:35.007310][warning][2180][VideoSensor.cpp:244] [AYZR364008E] Failed to stop video stream port: Camera is no longer connected!
+[07/08 16:42:35.009271][warning][2180][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:0
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/08 16:42:35.016873][warning][2180][VideoSensor.cpp:251] [AYZR364008E] Failed to send stop stream vendor command: Device is deactivated/disconnected! DeviceComponentId:0
+[07/08 16:42:35.043864][warning][2180][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/08 16:42:35.054492][warning][2180][VideoSensor.cpp:244] [AYZR364008E] Failed to stop video stream port: Camera is no longer connected!
+[07/08 16:42:35.057669][warning][2180][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:0
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/08 16:42:35.060658][warning][2180][VideoSensor.cpp:251] [AYZR364008E] Failed to send stop stream vendor command: Device is deactivated/disconnected! DeviceComponentId:0
+[07/08 16:42:35.074530][warning][2180][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/08 16:42:35.078417][warning][2180][WmfUvcDevicePort.cpp:655] Execute failure! A libobsensor_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(655):libobsensor::WmfUvcDevicePort::~WmfUvcDevicePort
+ - msg: Camera is no longer connected!
+ - type: class libobsensor::unrecoverable_exception
+ - status: 113
+[07/08 16:42:35.092781][warning][2180][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/08 16:42:35.099287][warning][2180][WmfUvcDevicePort.cpp:655] Execute failure! A libobsensor_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(655):libobsensor::WmfUvcDevicePort::~WmfUvcDevicePort
+ - msg: Camera is no longer connected!
+ - type: class libobsensor::unrecoverable_exception
+ - status: 113
+[07/08 16:48:29.755102][warning][22368][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/08 16:48:29.755229][warning][22368][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/08 16:48:31.855081][warning][22368][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/08 16:48:31.855184][warning][22368][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/08 16:48:34.034023][warning][22368][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/08 16:48:34.034140][warning][22368][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/08 16:48:36.791124][warning][16668][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/08 16:48:39.793990][warning][16668][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**30 logs in 3002ms**]
+[07/08 16:48:44.753733][warning][22368][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/08 16:48:45.909625][warning][1652][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**47 logs in 6115ms, last: 16:48:44.498442**]
+[07/08 16:48:47.761772][warning][22368][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**29 logs in 3008ms**]
+[07/08 16:48:53.848527][warning][22368][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**42 logs in 6086ms**]
+[07/08 16:49:05.938248][warning][22368][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**94 logs in 12089ms**]
+[07/08 16:49:29.989709][warning][22368][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**172 logs in 24051ms**]
+[07/08 16:50:18.032855][warning][22368][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**338 logs in 48043ms**]
+[07/08 16:50:26.731829][warning][11556][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**56 logs in 8698ms, last: 16:50:26.028995**]

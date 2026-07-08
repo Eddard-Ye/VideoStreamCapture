@@ -283,13 +283,14 @@ class YoloSegmenter:
         *,
         mask_refine: str = "otsu",
         mask_refine_pad: int = 80,
+        force_cpu: bool = False,
     ):
         self.model_path = model_path
         self.conf = conf
         self.mask_refine = mask_refine
         self.mask_refine_pad = max(0, int(mask_refine_pad))
         self._model = None
-        self._device = resolve_inference_device()
+        self._device = resolve_inference_device(force_cpu=force_cpu)
 
     def _get_model(self):
         if self._model is None:
@@ -414,6 +415,7 @@ class ColorViewer:
         water_cut: bool = False,
         sam_refine: bool = True,
         sam_checkpoint: Optional[str] = None,
+        force_cpu: bool = False,
     ):
         if image_bgr is None:
             raise ValueError("image_bgr is required")
@@ -444,12 +446,12 @@ class ColorViewer:
 
         self.instances: list[SegInstance] = []
         self.selected_index: Optional[int] = None
-        self.segmenter = YoloSegmenter(yolo_model, conf=yolo_conf)
+        self.segmenter = YoloSegmenter(yolo_model, conf=yolo_conf, force_cpu=force_cpu)
         self.sam_refine = sam_refine
         self.sam_refiner: Optional[SamRefiner] = None
         self.sam_prompt_mode = False
         if sam_refine or water_cut:
-            self.sam_refiner = SamRefiner(checkpoint=sam_checkpoint)
+            self.sam_refiner = SamRefiner(checkpoint=sam_checkpoint, force_cpu=force_cpu)
             if sam_refine:
                 print("SAM enabled: press A for prompt mode, left/right click fg/bg, M to run SAM.")
         if self.yolo_live:

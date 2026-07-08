@@ -19,7 +19,7 @@ from object_measure import (
     oriented_box_from_mask,
 )
 from sam_centerline import WaterCutAnalysis, draw_water_cut_overlay
-from yolo_sam_refine import SamRefiner
+from yolo_sam_refine import SamRefiner, prepare_water_cut_box_prompts
 
 SAM_COLOR_BGR = SamRefiner.SAM_COLOR_BGR
 LABEL_COLOR_BGR = (180, 60, 20)  # deep blue — high contrast on light scenes
@@ -389,6 +389,20 @@ def _draw_water_cut_sam_prompts(frame: np.ndarray, overlays: list[WaterCutOverla
         SamRefiner.draw_prompts(frame, coords[fg], labels[fg])
 
 
+def _draw_live_water_cut_prompts(frame: np.ndarray, instances: list[SegInstance]) -> None:
+    """Draw oriented-box SAM foreground prompts for water-cut preview (no SAM run)."""
+    for instance in instances:
+        preview = prepare_water_cut_box_prompts(instance.mask)
+        if (
+            preview is None
+            or preview.prompt_coords is None
+            or preview.prompt_labels is None
+            or len(preview.prompt_coords) == 0
+        ):
+            continue
+        SamRefiner.draw_prompts(frame, preview.prompt_coords, preview.prompt_labels)
+
+
 def compose_record_frame(
     image_bgr: np.ndarray,
     instances: list[SegInstance],
@@ -448,6 +462,8 @@ def compose_stream_frame(
                 clip_box=item.box_pts,
             )
         _draw_water_cut_sam_prompts(frame, water_cut_overlays)
+    else:
+        _draw_live_water_cut_prompts(frame, instances)
 
     if status_text:
         font = cv2.FONT_HERSHEY_SIMPLEX

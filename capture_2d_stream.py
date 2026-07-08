@@ -353,8 +353,9 @@ def run_stream(args: argparse.Namespace) -> int:
             conf=args.yolo_conf,
             mask_refine="off" if args.no_mask_refine else "otsu",
             mask_refine_pad=args.mask_refine_pad,
+            force_cpu=args.cpu,
         )
-        sam_refiner = SamRefiner(checkpoint=args.sam_checkpoint)
+        sam_refiner = SamRefiner(checkpoint=args.sam_checkpoint, force_cpu=args.cpu)
         smoother = None if args.no_smooth else TrackSmoother(
             alpha=args.smooth_alpha,
             max_miss=args.smooth_max_miss,
@@ -531,6 +532,11 @@ def main() -> int:
     parser.add_argument("--yolo-model", default="yolov8n-seg.pt")
     parser.add_argument("--yolo-conf", type=float, default=0.05)
     parser.add_argument("--yolo-imgsz", type=int, default=640)
+    parser.add_argument(
+        "--cpu",
+        action="store_true",
+        help="Run YOLO and SAM inference on CPU only (ignore CUDA/MPS).",
+    )
     parser.add_argument(
         "--no-mask-refine",
         action="store_true",

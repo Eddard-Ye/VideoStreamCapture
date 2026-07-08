@@ -30,10 +30,12 @@ SAM_VIT_B_URL = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec6
 DEFAULT_CKPT = PROJECT_ROOT / "checkpoints" / "sam_vit_b_01ec64.pth"
 
 
-def resolve_inference_device():
+def resolve_inference_device(*, force_cpu: bool = False):
     """Pick CUDA when available, else MPS (Apple), else CPU."""
     import torch
 
+    if force_cpu:
+        return torch.device("cpu")
     if torch.cuda.is_available():
         return torch.device("cuda")
     if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
@@ -478,6 +480,7 @@ class SamRefiner:
         sam_pick: str = "smallest",
         sam_cap_dilate: int = 14,
         auto_download: bool = True,
+        force_cpu: bool = False,
     ):
         self.checkpoint = resolve_sam_checkpoint(checkpoint)
         self.cv_edge_samples = cv_edge_samples
@@ -485,6 +488,7 @@ class SamRefiner:
         self.sam_pick = sam_pick
         self.sam_cap_dilate = sam_cap_dilate
         self.auto_download = auto_download
+        self.force_cpu = force_cpu
         self._predictor = None
         self._device = None
 
@@ -504,7 +508,7 @@ class SamRefiner:
                 "Place sam_vit_b_01ec64.pth under checkpoints/ or pass --sam-checkpoint."
             )
 
-        device = resolve_inference_device()
+        device = resolve_inference_device(force_cpu=self.force_cpu)
 
         print(f"Loading SAM ViT-B from {self.checkpoint} on {device} ...")
         sam = sam_model_registry["vit_b"](checkpoint=str(self.checkpoint))

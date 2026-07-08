@@ -582,6 +582,11 @@ def main() -> int:
     parser.add_argument("--yolo-conf", type=float, default=0.05)
     parser.add_argument("--yolo-imgsz", type=int, default=640)
     parser.add_argument("--no-yolo", action="store_true")
+    parser.add_argument(
+        "--cpu",
+        action="store_true",
+        help="Run YOLO inference on CPU only (ignore CUDA/MPS).",
+    )
     parser.add_argument("--mask-npy", default=None)
     parser.add_argument("--params", default=None)
     parser.add_argument("--preview-max-side", type=int, default=1280)
@@ -611,7 +616,11 @@ def main() -> int:
         if image_bgr is None:
             raise RuntimeError(f"Cannot read {args.image}")
 
-    segmenter = None if args.no_yolo else YoloSegmenter(args.yolo_model, conf=args.yolo_conf)
+    segmenter = None if args.no_yolo else YoloSegmenter(
+        args.yolo_model,
+        conf=args.yolo_conf,
+        force_cpu=args.cpu,
+    )
     h, w = image_bgr.shape[:2]
     tuner = WaterCutCvTuner(
         image_bgr,

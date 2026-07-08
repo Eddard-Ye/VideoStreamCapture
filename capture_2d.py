@@ -397,6 +397,7 @@ def run_gui(camera, payload_size, pixel_format, args):
         sam_refine=False,
         sam_checkpoint=args.sam_checkpoint,
         calib_2d=calib_2d,
+        force_cpu=args.cpu,
     )
     viewer.run()
     return 0
@@ -423,6 +424,11 @@ def main():
     parser.add_argument("--yolo-imgsz", type=int, default=640, help="YOLO inference size (smaller is faster).")
     parser.add_argument("--yolo-model", default="yolov8n-seg.pt", help="Ultralytics YOLO seg weights.")
     parser.add_argument("--yolo-conf", type=float, default=0.25, help="YOLO confidence threshold.")
+    parser.add_argument(
+        "--cpu",
+        action="store_true",
+        help="Run YOLO and SAM inference on CPU only (ignore CUDA/MPS).",
+    )
     parser.add_argument(
         "--water-cut",
         action="store_true",
