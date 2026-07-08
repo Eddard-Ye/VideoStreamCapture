@@ -1,0 +1,53 @@
+{
+  "_comment": "Orbbec Gemini 215 — color stream for YOLO pipeline. Copy/adjust resolution and fps as needed.",
+  "streams": {
+    "color_width": 1280,
+    "color_height": 720,
+    "depth_width": 1280,
+    "depth_height": 800,
+    "color_fps": 10,
+    "depth_fps": 10,
+    "color_format": "auto"
+  },
+  "alignment": {
+    "mode": "sw_d2c",
+    "fallback_to_software": true
+  },
+  "depth": {
+    "disparity_to_depth_mode": "hardware",
+    "depth_precision_mm": 0.4,
+    "min_depth_mm": 20,
+    "max_depth_mm": 5000,
+    "hole_filter": false
+  },
+  "roi": {
+    "enabled": false,
+    "mode": "center",
+    "width": 640,
+    "height": 480,
+    "x0": 0,
+    "y0": 0,
+    "x1": 640,
+    "y1": 480
+  },
+  "sync": {
+    "frame_sync": true,
+    "frame_aggregate": "FULL_FRAME_REQUIRE"
+  },
+  "measurement": {
+    "depth_sample_radius": 2,
+    "units": "mm"
+  },
+  "visualization": {
+    "depth_colormap": "jet",
+    "preprocess": "dynamic",
+    "relief_3d": false,
+    "histogram_equalization": true,
+    "visual_range_min_mm": 100,
+    "visual_range_max_mm": null
+  },
+  "device": {
+    "apply_hardware_settings": true,
+    "laser_enable": true
+  }
+}

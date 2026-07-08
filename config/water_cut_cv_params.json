@@ -1,0 +1,15 @@
+{
+  "body_margin": 21,
+  "top_margin": 6,
+  "top_relax_ratio": 0.51,
+  "column_half_ratio": 0.14,
+  "column_min_px": 12,
+  "center_pick_ratio": 0.08,
+  "v_close_kernel_h": 7,
+  "v_close_iterations": 2,
+  "open_iterations": 1,
+  "close_disk_iterations": 2,
+  "min_object_pixels": 100,
+  "manual_threshold": 0,
+  "threshold_offset": -7
+}

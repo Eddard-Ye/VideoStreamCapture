@@ -45,12 +45,30 @@ from camera_calib_2d import load_calib_or_none
 from color_viewer import ColorViewer, RoiRect
 
 DEVICE_TYPES = MV_GIGE_DEVICE | MV_USB_DEVICE
-BAYER8_FORMATS = {
-    PixelType_Gvsp_BayerRG8: cv2.COLOR_BayerRG2BGR,
-    PixelType_Gvsp_BayerGB8: cv2.COLOR_BayerGB2BGR,
-    PixelType_Gvsp_BayerGR8: cv2.COLOR_BayerGR2BGR,
-    PixelType_Gvsp_BayerBG8: cv2.COLOR_BayerBG2BGR,
+BAYER8_FORMATS = frozenset(
+    {
+        PixelType_Gvsp_BayerRG8,
+        PixelType_Gvsp_BayerGB8,
+        PixelType_Gvsp_BayerGR8,
+        PixelType_Gvsp_BayerBG8,
+    }
+)
+# GenICam/Hikvision Bayer labels differ from OpenCV; map to the paired pattern so
+# demosaiced colors match MVS (e.g. camera BayerRG8 -> OpenCV BayerBG2BGR).
+BAYER8_OPENCV = {
+    PixelType_Gvsp_BayerRG8: cv2.COLOR_BayerBG2BGR,
+    PixelType_Gvsp_BayerBG8: cv2.COLOR_BayerRG2BGR,
+    PixelType_Gvsp_BayerGR8: cv2.COLOR_BayerGB2BGR,
+    PixelType_Gvsp_BayerGB8: cv2.COLOR_BayerGR2BGR,
 }
+KNOWN_PIXEL_TYPES = frozenset(
+    {
+        PixelType_Gvsp_BGR8_Packed,
+        PixelType_Gvsp_RGB8_Packed,
+        PixelType_Gvsp_Mono8,
+        *BAYER8_FORMATS,
+    }
+)
 
 
 def _decode_c_string(raw_bytes):
@@ -154,6 +172,22 @@ def _effective_frame_len(frame_len, pixel_format, width, height, payload_size):
     return int(payload_size)
 
 
+def _frame_pixel_type(frame_info, pixel_format: int) -> int:
+    """Prefer configured PixelFormat; frame_info.enPixelType is unreliable with some SDK headers."""
+    src = int(frame_info.enPixelType)
+    if src in KNOWN_PIXEL_TYPES and int(frame_info.nFrameLen) > 0:
+        return src
+    return int(pixel_format)
+
+
+def _opencv_bayer_to_bgr(raw: np.ndarray, width: int, height: int, pixel_format: int) -> np.ndarray:
+    bayer_code = BAYER8_OPENCV.get(pixel_format)
+    if bayer_code is None:
+        raise RuntimeError(f"Unsupported Bayer pixel format: 0x{pixel_format:x}")
+    bayer = raw.reshape(height, width)
+    return cv2.cvtColor(bayer, bayer_code)
+
+
 def open_camera(device_info, pixel_format_name=None):
     camera = MvCamera()
 
@@ -205,58 +239,86 @@ def close_camera(camera):
     camera.MV_CC_DestroyHandle()
 
 
-def frame_to_bgr(camera, data_buf, frame_info, pixel_format, payload_size):
-    width = int(frame_info.nWidth)
-    height = int(frame_info.nHeight)
-    frame_len = _effective_frame_len(
-        int(frame_info.nFrameLen),
-        pixel_format,
-        width,
-        height,
-        payload_size,
-    )
-
-    if pixel_format == PixelType_Gvsp_BGR8_Packed:
-        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
-        return raw.reshape(height, width, 3)
-
-    if pixel_format == PixelType_Gvsp_RGB8_Packed:
-        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
-        rgb = raw.reshape(height, width, 3)
-        return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
-
-    if pixel_format == PixelType_Gvsp_Mono8:
-        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
-        gray = raw.reshape(height, width)
-        return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
-
-    bayer_code = BAYER8_FORMATS.get(pixel_format)
-    if bayer_code is not None:
-        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
-        bayer = raw.reshape(height, width)
-        return cv2.cvtColor(bayer, bayer_code)
-
-    dst_size = width * height * 3
+def _sdk_convert_to_bgr(
+    camera,
+    data_buf,
+    width: int,
+    height: int,
+    src_pixel_type: int,
+    src_len: int,
+) -> np.ndarray:
+    """Convert raw camera buffer to BGR via Hikvision SDK (matches MVS ISP pipeline)."""
+    dst_size = width * height * 3 + 2048
     dst_buf = (c_ubyte * dst_size)()
     convert_param = MV_CC_PIXEL_CONVERT_PARAM()
     memset(byref(convert_param), 0, sizeof(convert_param))
     convert_param.nWidth = width
     convert_param.nHeight = height
-    convert_param.enSrcPixelType = pixel_format
+    convert_param.enSrcPixelType = src_pixel_type
     convert_param.pSrcData = cast(data_buf, POINTER(c_ubyte))
-    convert_param.nSrcDataLen = frame_len
+    convert_param.nSrcDataLen = src_len
     convert_param.enDstPixelType = PixelType_Gvsp_BGR8_Packed
-    convert_param.pDstBuffer = cast(dst_buf, POINTER(c_ubyte))
+    convert_param.pDstBuffer = dst_buf
     convert_param.nDstBufferSize = dst_size
 
     ret = camera.MV_CC_ConvertPixelType(convert_param)
     if ret != 0:
         raise RuntimeError(
-            f"MV_CC_ConvertPixelType failed: 0x{ret:x}, pixel_format=0x{pixel_format:x}"
+            f"MV_CC_ConvertPixelType failed: 0x{ret:x}, "
+            f"pixel_format=0x{src_pixel_type:x}, src_len={src_len}"
         )
 
-    raw = np.frombuffer(dst_buf, dtype=np.uint8, count=int(convert_param.nDstLen))
+    out_len = int(convert_param.nDstLen) if int(convert_param.nDstLen) > 0 else width * height * 3
+    raw = np.frombuffer(dst_buf, dtype=np.uint8, count=out_len)
     return raw.reshape(height, width, 3)
+
+
+def _bayer_to_bgr(
+    camera,
+    data_buf,
+    width: int,
+    height: int,
+    src_pixel_type: int,
+    src_len: int,
+) -> np.ndarray:
+    # MV_CC_ConvertPixelType(Bayer->BGR) is unsupported on some models (e.g. MV-CU060).
+    try:
+        return _sdk_convert_to_bgr(camera, data_buf, width, height, src_pixel_type, src_len)
+    except RuntimeError:
+        raw = np.frombuffer(data_buf, dtype=np.uint8, count=src_len)
+        return _opencv_bayer_to_bgr(raw, width, height, src_pixel_type)
+
+
+def frame_to_bgr(camera, data_buf, frame_info, pixel_format, payload_size):
+    width = int(frame_info.nWidth)
+    height = int(frame_info.nHeight)
+    src_pixel_type = _frame_pixel_type(frame_info, pixel_format)
+    frame_len = _effective_frame_len(
+        int(frame_info.nFrameLen),
+        src_pixel_type,
+        width,
+        height,
+        payload_size,
+    )
+
+    if src_pixel_type == PixelType_Gvsp_BGR8_Packed:
+        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
+        return raw.reshape(height, width, 3)
+
+    if src_pixel_type == PixelType_Gvsp_RGB8_Packed:
+        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
+        rgb = raw.reshape(height, width, 3)
+        return cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR)
+
+    if src_pixel_type == PixelType_Gvsp_Mono8:
+        raw = np.frombuffer(data_buf, dtype=np.uint8, count=frame_len)
+        gray = raw.reshape(height, width)
+        return cv2.cvtColor(gray, cv2.COLOR_GRAY2BGR)
+
+    if src_pixel_type in BAYER8_FORMATS:
+        return _bayer_to_bgr(camera, data_buf, width, height, src_pixel_type, frame_len)
+
+    return _sdk_convert_to_bgr(camera, data_buf, width, height, src_pixel_type, frame_len)
 
 
 def fetch_frame(camera, payload_size, pixel_format, timeout_ms=1000, warmup_frames=0):
@@ -267,7 +329,7 @@ def fetch_frame(camera, payload_size, pixel_format, timeout_ms=1000, warmup_fram
 
     for _ in range(attempts):
         memset(byref(frame_info), 0, sizeof(frame_info))
-        ret = camera.MV_CC_GetOneFrameTimeout(byref(data_buf), payload_size, frame_info, timeout_ms)
+        ret = camera.MV_CC_GetOneFrameTimeout(data_buf, payload_size, frame_info, timeout_ms)
         if ret != 0:
             raise RuntimeError(f"MV_CC_GetOneFrameTimeout failed: 0x{ret:x}")
 
@@ -335,6 +397,7 @@ def run_gui(camera, payload_size, pixel_format, args):
         sam_refine=False,
         sam_checkpoint=args.sam_checkpoint,
         calib_2d=calib_2d,
+        force_cpu=args.cpu,
     )
     viewer.run()
     return 0
@@ -361,6 +424,11 @@ def main():
     parser.add_argument("--yolo-imgsz", type=int, default=640, help="YOLO inference size (smaller is faster).")
     parser.add_argument("--yolo-model", default="yolov8n-seg.pt", help="Ultralytics YOLO seg weights.")
     parser.add_argument("--yolo-conf", type=float, default=0.25, help="YOLO confidence threshold.")
+    parser.add_argument(
+        "--cpu",
+        action="store_true",
+        help="Run YOLO and SAM inference on CPU only (ignore CUDA/MPS).",
+    )
     parser.add_argument(
         "--water-cut",
         action="store_true",

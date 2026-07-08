@@ -30,10 +30,12 @@ SAM_VIT_B_URL = "https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec6
 DEFAULT_CKPT = PROJECT_ROOT / "checkpoints" / "sam_vit_b_01ec64.pth"
 
 
-def resolve_inference_device():
+def resolve_inference_device(*, force_cpu: bool = False):
     """Pick CUDA when available, else MPS (Apple), else CPU."""
     import torch
 
+    if force_cpu:
+        return torch.device("cpu")
     if torch.cuda.is_available():
         return torch.device("cuda")
     if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
@@ -326,29 +328,12 @@ def build_prompts_from_cv_edges_for_object(
     return pos_arr, np.ones(len(pos_arr), dtype=np.int64)
 
 
-def build_prompts_from_oriented_box(
-    box: np.ndarray,
-    length_px: float,
-    width_px: float,
-    *,
-    fg_samples: int = 16,
-    fg_extent_ratio: float = 0.6,
-    bg_inward_ratio: float = 0.2,
-) -> tuple[np.ndarray, np.ndarray]:
-    """Build SAM fg/bg prompts from a YOLO mask oriented box.
-
-    Foreground: ``fg_samples`` points on the line through the box center, parallel
-    to the long side, spanning ``fg_extent_ratio`` of the long side (symmetric).
-    Background: one point per long edge, offset inward from each long-edge midpoint
-    by ``bg_inward_ratio`` of the short side.
-    """
-    if length_px < 1e-3 or width_px < 1e-3 or fg_samples < 1:
-        raise RuntimeError("Invalid oriented box dimensions for prompt generation.")
-
+def _oriented_box_axes(box: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (center, long_unit, short_unit) from oriented box corners."""
     box = np.asarray(box, dtype=np.float64).reshape(4, 2)
     center = box.mean(axis=0)
 
-    edge_infos: list[tuple[float, np.ndarray, np.ndarray, np.ndarray]] = []
+    edge_infos: list[tuple[float, np.ndarray]] = []
     for index in range(4):
         start = box[index]
         end = box[(index + 1) % 4]
@@ -356,60 +341,47 @@ def build_prompts_from_oriented_box(
         edge_len = float(np.linalg.norm(vec))
         if edge_len < 1e-6:
             continue
-        edge_infos.append((edge_len, vec / edge_len, start, end))
+        edge_infos.append((edge_len, vec / edge_len))
 
     if not edge_infos:
         raise RuntimeError("Oriented box has no usable edges.")
 
-    max_edge_len = max(info[0] for info in edge_infos)
-    tol = max(1.0, 0.02 * max_edge_len)
-    long_edges = [info for info in edge_infos if info[0] >= max_edge_len - tol]
-    if len(long_edges) > 2:
-        best_pair: tuple[tuple[float, np.ndarray, np.ndarray, np.ndarray], ...] | None = None
-        best_dist = -1.0
-        for left in range(len(long_edges)):
-            for right in range(left + 1, len(long_edges)):
-                mid_left = 0.5 * (long_edges[left][2] + long_edges[left][3])
-                mid_right = 0.5 * (long_edges[right][2] + long_edges[right][3])
-                dist = float(np.linalg.norm(mid_left - mid_right))
-                if dist > best_dist:
-                    best_dist = dist
-                    best_pair = (long_edges[left], long_edges[right])
-        long_edges = list(best_pair) if best_pair is not None else long_edges[:2]
-    elif len(long_edges) < 2:
-        long_edges = sorted(edge_infos, key=lambda item: item[0], reverse=True)[:2]
+    edge_infos.sort(key=lambda item: item[0], reverse=True)
+    return center, edge_infos[0][1], edge_infos[-1][1]
 
-    long_dir = long_edges[0][1]
-    half_extent = 0.5 * fg_extent_ratio * length_px
-    line_start = center - long_dir * half_extent
-    line_end = center + long_dir * half_extent
 
-    t_values = np.linspace(0.0, 1.0, fg_samples, dtype=np.float64)
-    fg_points = line_start[None, :] + t_values[:, None] * (line_end - line_start)[None, :]
+def build_prompts_from_oriented_box(
+    box: np.ndarray,
+    length_px: float,
+    width_px: float,
+    *,
+    extent_ratio: float = 0.05,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Build five SAM foreground prompts from a YOLO mask oriented box.
 
-    bg_points: list[np.ndarray] = []
-    for edge_len, _edge_dir, start, end in long_edges:
-        midpoint = 0.5 * (start + end)
-        inward = center - midpoint
-        inward_len = float(np.linalg.norm(inward))
-        if inward_len < 1e-6:
-            continue
-        inward /= inward_len
-        bg_points.append(midpoint + inward * (bg_inward_ratio * width_px))
+    Uses the box center plus four points offset along the long and short axes.
+    Each offset is ``extent_ratio`` times the corresponding side length, so a
+    longer object places long-axis prompts farther from center than short-axis ones.
+    """
+    if length_px < 1e-3 or width_px < 1e-3:
+        raise RuntimeError("Invalid oriented box dimensions for prompt generation.")
 
-    if not bg_points:
-        raise RuntimeError("Could not place background prompts on oriented box.")
+    center, long_dir, short_dir = _oriented_box_axes(box)
+    long_offset = float(extent_ratio) * float(length_px)
+    short_offset = float(extent_ratio) * float(width_px)
 
-    fg_arr = fg_points.astype(np.float32)
-    bg_arr = np.asarray(bg_points, dtype=np.float32)
-    coords = np.vstack([fg_arr, bg_arr])
-    labels = np.concatenate(
+    fg_points = np.array(
         [
-            np.ones(len(fg_arr), dtype=np.int64),
-            np.zeros(len(bg_arr), dtype=np.int64),
-        ]
+            center,
+            center + long_dir * long_offset,
+            center - long_dir * long_offset,
+            center + short_dir * short_offset,
+            center - short_dir * short_offset,
+        ],
+        dtype=np.float32,
     )
-    return coords, labels
+    labels = np.ones(len(fg_points), dtype=np.int64)
+    return fg_points, labels
 
 
 def resolve_sam_checkpoint(checkpoint: str | Path | None) -> Path:
@@ -429,9 +401,9 @@ def resolve_sam_checkpoint(checkpoint: str | Path | None) -> Path:
 def prepare_water_cut_box_prompts(
     object_mask: np.ndarray,
     *,
-    fg_samples: int = 16,
+    extent_ratio: float = 0.05,
 ) -> SamSubRegion | None:
-    """Build oriented-box SAM fg/bg prompts for water-cut (no CV edge detection)."""
+    """Build oriented-box SAM foreground prompts for water-cut (no CV edge detection)."""
     object_bool = object_mask.astype(bool)
     if not np.any(object_bool):
         return None
@@ -446,7 +418,7 @@ def prepare_water_cut_box_prompts(
             box,
             length_px,
             width_px,
-            fg_samples=fg_samples,
+            extent_ratio=extent_ratio,
         )
     except RuntimeError:
         return None
@@ -508,6 +480,7 @@ class SamRefiner:
         sam_pick: str = "smallest",
         sam_cap_dilate: int = 14,
         auto_download: bool = True,
+        force_cpu: bool = False,
     ):
         self.checkpoint = resolve_sam_checkpoint(checkpoint)
         self.cv_edge_samples = cv_edge_samples
@@ -515,6 +488,7 @@ class SamRefiner:
         self.sam_pick = sam_pick
         self.sam_cap_dilate = sam_cap_dilate
         self.auto_download = auto_download
+        self.force_cpu = force_cpu
         self._predictor = None
         self._device = None
 
@@ -534,7 +508,7 @@ class SamRefiner:
                 "Place sam_vit_b_01ec64.pth under checkpoints/ or pass --sam-checkpoint."
             )
 
-        device = resolve_inference_device()
+        device = resolve_inference_device(force_cpu=self.force_cpu)
 
         print(f"Loading SAM ViT-B from {self.checkpoint} on {device} ...")
         sam = sam_model_registry["vit_b"](checkpoint=str(self.checkpoint))
