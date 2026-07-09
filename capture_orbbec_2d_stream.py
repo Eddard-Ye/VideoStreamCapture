@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from capture_2d_stream import (
+from stream_common import (
     attach_oriented_boxes,
     build_status,
     encode_jpeg,
