@@ -8,7 +8,7 @@ import os
 import numpy as np
 
 from camera_intrinsics import RgbIntrinsics
-from capture_2d_stream import sanitize_capture_name, save_capture_jpeg
+from stream_common import save_capture_jpeg
 from color_viewer import SegInstance
 from object_measure import (
     measure_mask_mm,
