@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
-from color_viewer import SegInstance
+from color_viewer import RoiRect, SegInstance
 from object_measure import (
     format_instance_height_display,
     format_lxwxh_stream_label,
@@ -28,6 +28,7 @@ MIN_HEIGHT_MARKER_BGR = (255, 80, 0)  # bright blue dots for peak-height pixels
 LABEL_OUTLINE_BGR = (255, 255, 255)
 YOLO_CONTOUR_BGR = (0, 255, 0)
 YOLO_OBB_BGR = (0, 220, 120)
+ROI_COLOR_BGR = (0, 0, 255)
 RECORD_COLOR_BGR = (255, 255, 255)
 RECORD_BG_BGR = (20, 20, 20)
 
@@ -286,6 +287,79 @@ def _draw_peak_height_markers(frame: np.ndarray, instances: list[SegInstance]) -
         frame[peak_mask > 0] = MIN_HEIGHT_MARKER_BGR
 
 
+def _is_full_frame_roi(roi: RoiRect, width: int, height: int) -> bool:
+    return roi.x1 <= 0 and roi.y1 <= 0 and roi.x2 >= width and roi.y2 >= height
+
+
+def _draw_dashed_line(
+    image: np.ndarray,
+    pt1: tuple[int, int],
+    pt2: tuple[int, int],
+    color: tuple[int, int, int],
+    thickness: int,
+    dash_length: int,
+    gap_length: int,
+) -> None:
+    x1, y1 = pt1
+    x2, y2 = pt2
+    length = float(np.hypot(x2 - x1, y2 - y1))
+    if length <= 0:
+        return
+    step = dash_length + gap_length
+    pos = 0.0
+    while pos < length:
+        start = pos / length
+        end = min(pos + dash_length, length) / length
+        sx = int(round(x1 + (x2 - x1) * start))
+        sy = int(round(y1 + (y2 - y1) * start))
+        ex = int(round(x1 + (x2 - x1) * end))
+        ey = int(round(y1 + (y2 - y1) * end))
+        cv2.line(image, (sx, sy), (ex, ey), color, thickness, cv2.LINE_AA)
+        pos += step
+
+
+def _draw_dashed_rectangle(
+    image: np.ndarray,
+    roi: RoiRect,
+    *,
+    color: tuple[int, int, int] = ROI_COLOR_BGR,
+    thickness: int = 2,
+    dash_length: int = 12,
+    gap_length: int = 8,
+) -> None:
+    x1, y1, x2, y2 = roi.x1, roi.y1, roi.x2, roi.y2
+    corners = ((x1, y1), (x2, y1), (x2, y2), (x1, y2))
+    for index in range(4):
+        start = corners[index]
+        end = corners[(index + 1) % 4]
+        _draw_dashed_line(image, start, end, color, thickness, dash_length, gap_length)
+
+
+def _draw_roi_rect(
+    frame: np.ndarray,
+    roi: RoiRect | None,
+    *,
+    label_size_factor: float = LABEL_SIZE_FACTOR,
+) -> None:
+    if roi is None:
+        return
+    height, width = frame.shape[:2]
+    if _is_full_frame_roi(roi, width, height):
+        return
+
+    thickness = max(2, int(round(2 * label_size_factor)))
+    dash_length = max(8, int(round(12 * label_size_factor)))
+    gap_length = max(6, int(round(8 * label_size_factor)))
+    _draw_dashed_rectangle(
+        frame,
+        roi,
+        color=ROI_COLOR_BGR,
+        thickness=thickness,
+        dash_length=dash_length,
+        gap_length=gap_length,
+    )
+
+
 def _draw_instance_contours(frame: np.ndarray, instances: list[SegInstance]) -> None:
     """Draw mask boundary only; mask data is still used upstream for OBB / LxW metrics."""
     thickness = max(2, int(round(2 * LABEL_SIZE_FACTOR)))
@@ -409,12 +483,14 @@ def compose_record_frame(
     record_info: CaptureRecordInfo,
     *,
     water_cut_overlays: list[WaterCutOverlay] | None = None,
+    roi: RoiRect | None = None,
     label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> np.ndarray:
     frame = compose_stream_frame(
         image_bgr,
         instances,
         water_cut_overlays=water_cut_overlays,
+        roi=roi,
         label_size_factor=label_size_factor,
     )
     _draw_record_info_block(
@@ -431,10 +507,12 @@ def compose_stream_frame(
     *,
     water_cut_overlays: list[WaterCutOverlay] | None = None,
     status_text: str | None = None,
+    roi: RoiRect | None = None,
     label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> np.ndarray:
     frame = image_bgr.copy()
 
+    _draw_roi_rect(frame, roi, label_size_factor=label_size_factor)
     _draw_instance_contours(frame, instances)
     _draw_instance_oriented_boxes(frame, instances)
     _draw_plane_sample_markers(frame, instances)
