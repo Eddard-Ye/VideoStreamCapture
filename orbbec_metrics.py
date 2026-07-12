@@ -9,7 +9,7 @@ import numpy as np
 
 from camera_intrinsics import RgbIntrinsics
 from stream_common import save_capture_jpeg
-from color_viewer import SegInstance
+from color_viewer import RoiRect, SegInstance
 from object_measure import (
     measure_mask_mm,
     instance_height_mm,
@@ -176,6 +176,7 @@ def process_orbbec_capture_request(
     intrinsics: RgbIntrinsics,
     output_dir: str,
     jpeg_quality: int,
+    roi: RoiRect | None = None,
     label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> dict:
     try:
@@ -202,6 +203,7 @@ def process_orbbec_capture_request(
             instances,
             record_info,
             water_cut_overlays=record_overlays if request.water_cut else None,
+            roi=roi,
             label_size_factor=label_size_factor,
         )
         output_path = save_capture_jpeg(frame, output_dir, request.name, jpeg_quality)

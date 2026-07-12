@@ -265,6 +265,7 @@ def run_stream(args: argparse.Namespace) -> int:
                         display_instances,
                         water_cut_overlays=water_cut_overlays or None,
                         status_text=status_text,
+                        roi=roi,
                         label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                     )
                     hub.set_frame(
@@ -285,6 +286,7 @@ def run_stream(args: argparse.Namespace) -> int:
                     intrinsics=intrinsics,
                     output_dir=args.capture_output_dir,
                     jpeg_quality=args.jpeg_quality,
+                    roi=roi,
                     label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                 )
                 hub.computing_water_cut = False
@@ -312,6 +314,7 @@ def run_stream(args: argparse.Namespace) -> int:
                     display_instances,
                     water_cut_overlays=water_cut_overlays or None,
                     status_text=status_text,
+                    roi=roi,
                     label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                 )
                 hub.set_frame(
@@ -338,6 +341,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 image,
                 display_instances,
                 water_cut_overlays=water_cut_overlays or None,
+                roi=roi,
                 label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
             )
             jpeg = encode_jpeg(frame, args.stream_width, args.jpeg_quality)
