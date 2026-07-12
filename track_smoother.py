@@ -9,6 +9,7 @@ from typing import Sequence
 import numpy as np
 
 from color_viewer import SegInstance
+from object_measure import instance_height_mm
 
 
 def _ema(previous: float, current: float, alpha: float) -> float:
@@ -87,13 +88,14 @@ class _TrackState:
     width_mm: float
     length_px: float
     width_px: float
+    height_mm: float
     confidence: float
     box_pts: np.ndarray | None
     miss_count: int = 0
 
 
 class TrackSmoother:
-    """Match detections across frames and EMA-smooth L/W readouts for live display."""
+    """Match detections across frames and EMA-smooth L/W/H readouts for live display."""
 
     def __init__(
         self,
@@ -169,6 +171,7 @@ class TrackSmoother:
         track.width_px = _ema(track.width_px, cur_width_px, alpha)
         track.length_mm = _ema(track.length_mm, cur_length_mm, alpha)
         track.width_mm = _ema(track.width_mm, cur_width_mm, alpha)
+        track.height_mm = _ema(track.height_mm, instance_height_mm(instance), alpha)
         track.confidence = _ema(track.confidence, instance.confidence, alpha)
 
         if instance.box_pts is not None:
@@ -189,6 +192,7 @@ class TrackSmoother:
             width_mm=instance.width_mm,
             length_px=instance.length_px,
             width_px=instance.width_px,
+            height_mm=instance_height_mm(instance),
             confidence=instance.confidence,
             box_pts=box_pts,
         )
@@ -205,6 +209,8 @@ class TrackSmoother:
             width_mm=track.width_mm,
             length_px=track.length_px,
             width_px=track.width_px,
+            height_mm=track.height_mm,
+            peak_height_mm=track.height_mm,
             confidence=track.confidence,
             box_pts=box_pts,
         )

@@ -484,6 +484,8 @@ def compose_record_frame(
     *,
     water_cut_overlays: list[WaterCutOverlay] | None = None,
     roi: RoiRect | None = None,
+    label_instances: list[SegInstance] | None = None,
+    draw_oriented_boxes: bool = True,
     label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> np.ndarray:
     frame = compose_stream_frame(
@@ -491,6 +493,8 @@ def compose_record_frame(
         instances,
         water_cut_overlays=water_cut_overlays,
         roi=roi,
+        label_instances=label_instances,
+        draw_oriented_boxes=draw_oriented_boxes,
         label_size_factor=label_size_factor,
     )
     _draw_record_info_block(
@@ -508,18 +512,22 @@ def compose_stream_frame(
     water_cut_overlays: list[WaterCutOverlay] | None = None,
     status_text: str | None = None,
     roi: RoiRect | None = None,
+    label_instances: list[SegInstance] | None = None,
+    draw_oriented_boxes: bool = False,
     label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> np.ndarray:
     frame = image_bgr.copy()
+    labels = label_instances if label_instances is not None else instances
 
     _draw_roi_rect(frame, roi, label_size_factor=label_size_factor)
     _draw_instance_contours(frame, instances)
-    _draw_instance_oriented_boxes(frame, instances)
+    if draw_oriented_boxes:
+        _draw_instance_oriented_boxes(frame, instances)
     _draw_plane_sample_markers(frame, instances)
     _draw_peak_height_markers(frame, instances)
     _draw_instance_labels(
         frame,
-        instances,
+        labels,
         water_cut_overlays,
         label_size_factor=label_size_factor,
     )

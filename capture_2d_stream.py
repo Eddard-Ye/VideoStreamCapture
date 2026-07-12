@@ -109,8 +109,10 @@ def process_capture_request(
     calib,
     output_dir: str,
     jpeg_quality: int,
+    label_instances: list[SegInstance] | None = None,
 ) -> dict:
     try:
+        labels = label_instances if label_instances is not None else instances
         record_overlays: list[WaterCutOverlay] = []
         if request.water_cut:
             print("Capture requested with water-cut...")
@@ -122,7 +124,7 @@ def process_capture_request(
             )
 
         record_info = build_capture_record_info(
-            instances,
+            labels,
             temperature=request.temperature,
             weight=request.weight,
             water_cut_enabled=request.water_cut,
@@ -133,12 +135,14 @@ def process_capture_request(
             instances,
             record_info,
             water_cut_overlays=record_overlays if request.water_cut else None,
+            label_instances=labels,
+            draw_oriented_boxes=True,
         )
         output_path = save_capture_jpeg(frame, output_dir, request.name, jpeg_quality)
         file_name = os.path.basename(output_path)
         print(f"Saved capture: {output_path}")
 
-        primary = instances[0] if instances else None
+        primary = labels[0] if labels else None
         water_cut_mm = (
             None
             if record_info.water_cut_mm is None or not np.isfinite(record_info.water_cut_mm)
@@ -317,6 +321,7 @@ def run_stream(args: argparse.Namespace) -> int:
                     calib=calib,
                     output_dir=args.capture_output_dir,
                     jpeg_quality=args.jpeg_quality,
+                    label_instances=display_instances,
                 )
                 hub.computing_water_cut = False
                 hub.finish_capture(capture_req)
@@ -449,7 +454,7 @@ def main() -> int:
     parser.add_argument(
         "--no-smooth",
         action="store_true",
-        help="Disable temporal smoothing of live L/W readouts.",
+        help="Disable temporal smoothing of live L/W/H readouts.",
     )
     args = parser.parse_args()
 
