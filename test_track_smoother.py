@@ -14,6 +14,8 @@ def _instance(
     width_mm: float,
     length_px: float,
     width_px: float,
+    height_mm: float = float("nan"),
+    peak_height_mm: float = float("nan"),
     confidence: float = 0.9,
 ) -> SegInstance:
     return SegInstance(
@@ -25,6 +27,8 @@ def _instance(
         width_mm=width_mm,
         length_px=length_px,
         width_px=width_px,
+        height_mm=height_mm,
+        peak_height_mm=peak_height_mm,
     )
 
 
@@ -59,6 +63,39 @@ def test_smoother_ema_reduces_jitter():
     out2 = smoother.update([second])[0]
     assert out2.length_mm == 102.5
     assert out2.width_mm == 51.25
+
+
+def test_smoother_ema_reduces_height_jitter():
+    smoother = TrackSmoother(alpha=0.25, max_miss=3)
+    mask = np.zeros((100, 100), dtype=bool)
+    mask[20:80, 30:70] = True
+
+    smoother.update(
+        [
+            _instance(
+                mask=mask,
+                length_mm=100.0,
+                width_mm=50.0,
+                length_px=200.0,
+                width_px=100.0,
+                peak_height_mm=10.0,
+            )
+        ]
+    )
+    out = smoother.update(
+        [
+            _instance(
+                mask=mask,
+                length_mm=100.0,
+                width_mm=50.0,
+                length_px=200.0,
+                width_px=100.0,
+                peak_height_mm=14.0,
+            )
+        ]
+    )[0]
+    assert out.peak_height_mm == 11.0
+    assert out.height_mm == 11.0
 
 
 def test_smoother_keeps_track_across_small_motion():
@@ -97,5 +134,6 @@ def test_smoother_keeps_track_across_small_motion():
 if __name__ == "__main__":
     test_align_length_width_prefers_previous_assignment()
     test_smoother_ema_reduces_jitter()
+    test_smoother_ema_reduces_height_jitter()
     test_smoother_keeps_track_across_small_motion()
     print("ok")

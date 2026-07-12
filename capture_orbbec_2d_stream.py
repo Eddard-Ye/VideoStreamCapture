@@ -287,6 +287,7 @@ def run_stream(args: argparse.Namespace) -> int:
                     output_dir=args.capture_output_dir,
                     jpeg_quality=args.jpeg_quality,
                     roi=roi,
+                    label_instances=display_instances,
                     label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                 )
                 hub.computing_water_cut = False
@@ -462,7 +463,7 @@ def main() -> int:
     parser.add_argument(
         "--no-smooth",
         action="store_true",
-        help="Disable temporal smoothing of live L/W readouts.",
+        help="Disable temporal smoothing of live L/W/H readouts.",
     )
     args = parser.parse_args()
     if args.infer_every < 1:

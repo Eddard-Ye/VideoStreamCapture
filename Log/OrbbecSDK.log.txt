@@ -1453,3 +1453,87 @@
 [07/12 10:18:05.152873][warning][21216][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**11 logs in 6061ms, last: 10:18:04.826082**]
 [07/12 10:18:13.143382][warning][8472][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**14 logs in 20585ms, last: 10:17:54.559674**]
 [07/12 10:18:13.144471][warning][16860][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**9 logs in 7991ms, last: 10:18:10.843689**]
+[07/12 10:50:34.742557][warning][3212][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/12 10:50:34.742993][warning][3212][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/12 10:50:36.993053][warning][3212][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/12 10:50:36.993386][warning][3212][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/12 10:50:39.427273][warning][3212][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=108
+[07/12 10:50:39.427572][warning][3212][PropertyServer.cpp:87] [AYZR364008E] Not added to property map, property not found in OBPropertyBaseInfoMap, id=4035
+[07/12 10:50:43.604897][warning][18676][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset!
+[07/12 10:50:46.607018][warning][18676][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**21 logs in 3002ms**]
+[07/12 10:50:52.713113][warning][18676][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**43 logs in 6106ms**]
+[07/12 10:51:04.725116][warning][18676][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**85 logs in 12012ms**]
+[07/12 10:51:07.511306][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1
+[07/12 10:51:10.780728][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**7 logs in 3269ms**]
+[07/12 10:51:16.915901][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**13 logs in 6135ms**]
+[07/12 10:51:28.937295][warning][18592][Pipeline.cpp:324] [AYZR364008E] Output frameset queue is full, drop oldest frameset! [**15 logs in 24212ms, last: 10:51:06.927673**]
+[07/12 10:51:28.983905][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**20 logs in 12068ms**]
+[07/12 10:51:53.442500][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**40 logs in 24458ms**]
+[07/12 10:52:41.590457][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**75 logs in 48147ms**]
+[07/12 10:53:42.011190][warning][3212][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**93 logs in 60420ms**]
+[07/12 10:54:33.256070][warning][18456][DeviceBase.cpp:207] Device is deactivated or disconnected while there are still sensors streaming!
+[07/12 10:54:35.663022][warning][3212][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/12 10:54:35.669440][warning][3212][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/12 10:54:35.670655][warning][3212][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/12 10:54:35.671630][warning][3212][Pipeline.cpp:61] [AYZR364008E] Execute failure! A libobsensor_exception has occurred!
+ - where: Pipeline.cpp(61):libobsensor::Pipeline::~Pipeline
+ - msg: Device is deactivated/disconnected! DeviceComponentId:2
+ - type: class libobsensor::recoverable_exception
+ - status: 108
+[07/12 10:54:35.707892][warning][3212][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/12 10:54:35.710694][warning][3212][VideoSensor.cpp:244] [AYZR364008E] Failed to stop video stream port: Camera is no longer connected!
+[07/12 10:54:35.711079][warning][3212][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:0
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/12 10:54:35.711720][warning][3212][VideoSensor.cpp:251] [AYZR364008E] Failed to send stop stream vendor command: Device is deactivated/disconnected! DeviceComponentId:0
+[07/12 10:54:35.752590][warning][3212][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/12 10:54:35.753531][warning][3212][VideoSensor.cpp:244] [AYZR364008E] Failed to stop video stream port: Camera is no longer connected!
+[07/12 10:54:35.754707][warning][3212][ObException.cpp:26] A recoverable_exception has occurred!
+ - where: DeviceBase.cpp(330)
+ - msg: Device is deactivated/disconnected! DeviceComponentId:0
+ - type: WRONG_API_CALL_SEQUENCE
+ - status: 108
+[07/12 10:54:35.755461][warning][3212][VideoSensor.cpp:251] [AYZR364008E] Failed to send stop stream vendor command: Device is deactivated/disconnected! DeviceComponentId:0
+[07/12 10:54:35.770909][warning][3212][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/12 10:54:35.773067][warning][3212][WmfUvcDevicePort.cpp:655] Execute failure! A libobsensor_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(655):libobsensor::WmfUvcDevicePort::~WmfUvcDevicePort
+ - msg: Camera is no longer connected!
+ - type: class libobsensor::unrecoverable_exception
+ - status: 113
+[07/12 10:54:35.794145][warning][3212][ObException.cpp:32] A unrecoverable_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(1002)
+ - msg: Camera is no longer connected!
+ - type: DEVICE_UNAVAILABLE
+ - status: 113
+[07/12 10:54:35.794686][warning][3212][WmfUvcDevicePort.cpp:655] Execute failure! A libobsensor_exception has occurred!
+ - where: WmfUvcDevicePort.cpp(655):libobsensor::WmfUvcDevicePort::~WmfUvcDevicePort
+ - msg: Camera is no longer connected!
+ - type: class libobsensor::unrecoverable_exception
+ - status: 113
+[07/12 10:54:36.476808][warning][15824][Pipeline.cpp:335] [AYZR364008E] Wait for frame timeout, you can try to increase the wait time! current timeout=1 [**39 logs in 54465ms, last: 10:54:35.209143**]

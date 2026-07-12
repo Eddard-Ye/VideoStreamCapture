@@ -177,9 +177,11 @@ def process_orbbec_capture_request(
     output_dir: str,
     jpeg_quality: int,
     roi: RoiRect | None = None,
+    label_instances: list[SegInstance] | None = None,
     label_size_factor: float = LABEL_SIZE_FACTOR,
 ) -> dict:
     try:
+        labels = label_instances if label_instances is not None else instances
         record_overlays: list[WaterCutOverlay] = []
         if request.water_cut:
             print("Capture requested with water-cut...")
@@ -192,7 +194,7 @@ def process_orbbec_capture_request(
             )
 
         record_info = build_capture_record_info(
-            instances,
+            labels,
             temperature=request.temperature,
             weight=request.weight,
             water_cut_enabled=request.water_cut,
@@ -204,13 +206,15 @@ def process_orbbec_capture_request(
             record_info,
             water_cut_overlays=record_overlays if request.water_cut else None,
             roi=roi,
+            label_instances=labels,
+            draw_oriented_boxes=True,
             label_size_factor=label_size_factor,
         )
         output_path = save_capture_jpeg(frame, output_dir, request.name, jpeg_quality)
         file_name = os.path.basename(output_path)
         print(f"Saved capture: {output_path}")
 
-        primary = instances[0] if instances else None
+        primary = labels[0] if labels else None
         water_cut_mm = (
             None
             if record_info.water_cut_mm is None or not np.isfinite(record_info.water_cut_mm)
