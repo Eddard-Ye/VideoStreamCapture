@@ -88,6 +88,21 @@ def _prepare_output_instances(
     return raw_instances, display_instances
 
 
+def _print_height_metrics(instances: list) -> None:
+    for index, instance in enumerate(instances):
+        height_s = (
+            f"{instance.height_mm:.1f}mm"
+            if np.isfinite(instance.height_mm)
+            else "---"
+        )
+        peak_s = (
+            f"{instance.peak_height_mm:.1f}mm"
+            if np.isfinite(instance.peak_height_mm)
+            else "---"
+        )
+        print(f"  [{index}] height_mm={height_s}  peak_height_mm={peak_s}")
+
+
 def _attach_metrics(
     instances: list,
     depth_mm: np.ndarray,
@@ -241,6 +256,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 intrinsics,
                 smoother,
             )
+            _print_height_metrics(display_instances)
 
             capture_req = hub.consume_capture_request()
             if capture_req is not None:
@@ -267,6 +283,7 @@ def run_stream(args: argparse.Namespace) -> int:
                         status_text=status_text,
                         roi=roi,
                         label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
+                        split_height_labels=True,
                     )
                     hub.set_frame(
                         encode_jpeg(preview, args.stream_width, args.jpeg_quality),
@@ -317,6 +334,7 @@ def run_stream(args: argparse.Namespace) -> int:
                     status_text=status_text,
                     roi=roi,
                     label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
+                    split_height_labels=True,
                 )
                 hub.set_frame(
                     encode_jpeg(preview, args.stream_width, args.jpeg_quality),
@@ -344,6 +362,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 water_cut_overlays=water_cut_overlays or None,
                 roi=roi,
                 label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
+                split_height_labels=True,
             )
             jpeg = encode_jpeg(frame, args.stream_width, args.jpeg_quality)
 

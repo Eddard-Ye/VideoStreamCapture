@@ -11,12 +11,13 @@ from camera_intrinsics import RgbIntrinsics
 from stream_common import save_capture_jpeg
 from color_viewer import RoiRect, SegInstance
 from object_measure import (
+    mean_depth_points_in_mask,
     measure_mask_mm,
-    instance_height_mm,
     oriented_box_from_mask,
     oriented_box_metrics_from_mask,
     peak_height_points_in_mask,
     plane_depth_from_obbox_samples,
+    resolve_capture_height_mm,
 )
 from sam_centerline import analyze_water_cut
 from stream_overlay import (
@@ -78,6 +79,7 @@ def attach_orbbec_instance_metrics(
         if measured is None:
             instance.peak_height_points = []
             instance.peak_height_mm = float("nan")
+            instance.average_height_points = []
             continue
 
         instance.box_pts = measured.box_pts
@@ -86,6 +88,7 @@ def attach_orbbec_instance_metrics(
         instance.height_mm = measured.height_mm
         instance.z_object_mm = measured.z_object_mm
         instance.angle_deg = measured.angle_deg
+        instance.average_height_points = mean_depth_points_in_mask(instance.mask, depth_mm)
 
         if np.isfinite(z_plane_ref_mm) and z_plane_ref_mm > 0:
             peak_points, peak_height_mm = peak_height_points_in_mask(
@@ -199,6 +202,9 @@ def process_orbbec_capture_request(
             weight=request.weight,
             water_cut_enabled=request.water_cut,
             water_cut_overlays=record_overlays,
+            height_calc_mode=request.height_calc_mode,
+            height_scale=request.height_scale,
+            height_offset=request.height_offset,
         )
         frame = compose_record_frame(
             image_bgr,
@@ -220,7 +226,16 @@ def process_orbbec_capture_request(
             if record_info.water_cut_mm is None or not np.isfinite(record_info.water_cut_mm)
             else round(float(record_info.water_cut_mm), 1)
         )
-        primary_height_mm = None if primary is None else instance_height_mm(primary)
+        primary_height_mm = (
+            None
+            if primary is None
+            else resolve_capture_height_mm(
+                primary,
+                calc_mode=request.height_calc_mode,
+                height_scale=request.height_scale,
+                height_offset=request.height_offset,
+            )
+        )
         return {
             "ok": True,
             "fileName": file_name,

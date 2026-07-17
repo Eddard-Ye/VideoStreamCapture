@@ -78,7 +78,8 @@ def test_smoother_ema_reduces_height_jitter():
                 width_mm=50.0,
                 length_px=200.0,
                 width_px=100.0,
-                peak_height_mm=10.0,
+                height_mm=10.0,
+                peak_height_mm=20.0,
             )
         ]
     )
@@ -90,12 +91,13 @@ def test_smoother_ema_reduces_height_jitter():
                 width_mm=50.0,
                 length_px=200.0,
                 width_px=100.0,
-                peak_height_mm=14.0,
+                height_mm=14.0,
+                peak_height_mm=28.0,
             )
         ]
     )[0]
-    assert out.peak_height_mm == 11.0
     assert out.height_mm == 11.0
+    assert out.peak_height_mm == 22.0
 
 
 def test_smoother_keeps_track_across_small_motion():

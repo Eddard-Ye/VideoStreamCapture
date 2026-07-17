@@ -53,6 +53,24 @@ def main() -> int:
     parser.add_argument("--temperature", default="", help="For capture, temperature text.")
     parser.add_argument("--weight", default="", help="For capture, weight text (e.g. 14.2g).")
     parser.add_argument(
+        "--height-calc-mode",
+        choices=("peak", "average"),
+        default="peak",
+        help="For capture, peak or average object height (default: peak).",
+    )
+    parser.add_argument(
+        "--height-scale",
+        type=float,
+        default=1.0,
+        help="For capture, multiply raw height by this scale (default: 1.0).",
+    )
+    parser.add_argument(
+        "--height-offset",
+        type=float,
+        default=0.0,
+        help="For capture, add this offset after scale (default: 0.0).",
+    )
+    parser.add_argument(
         "--water-cut",
         action="store_true",
         help="For capture, compute and render water-cut width.",
@@ -79,6 +97,9 @@ def main() -> int:
                 "temperature": args.temperature,
                 "weight": args.weight,
                 "water_cut": bool(args.water_cut),
+                "height_calc_mode": args.height_calc_mode,
+                "height_scale": float(args.height_scale),
+                "height_offset": float(args.height_offset),
             },
         )
     else:

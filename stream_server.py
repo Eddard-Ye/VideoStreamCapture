@@ -21,6 +21,9 @@ class CaptureRequest:
     temperature: str
     weight: str
     water_cut: bool
+    height_calc_mode: str = "peak"
+    height_scale: float = 1.0
+    height_offset: float = 0.0
     event: threading.Event = field(default_factory=threading.Event)
     result: dict[str, Any] = field(default_factory=dict)
 
@@ -243,11 +246,29 @@ def make_handler(hub: StreamHub, capture_output_dir: str):
                     value = payload.get(key, "")
                     return "" if value is None else str(value)
 
+                def _float_field(key: str, default: float) -> float:
+                    if key not in payload or payload.get(key) is None or payload.get(key) == "":
+                        return default
+                    try:
+                        value = float(payload.get(key))
+                    except (TypeError, ValueError):
+                        return default
+                    if value != value:  # NaN
+                        return default
+                    return value
+
                 water_cut_raw = payload.get("water_cut", False)
                 if isinstance(water_cut_raw, str):
                     water_cut = water_cut_raw.strip().lower() in ("1", "true", "yes", "on")
                 else:
                     water_cut = bool(water_cut_raw)
+
+                mode_raw = payload.get("height_calc_mode", "peak")
+                if mode_raw is None or str(mode_raw).strip() == "":
+                    height_calc_mode = "peak"
+                else:
+                    mode_text = str(mode_raw).strip().lower()
+                    height_calc_mode = "average" if mode_text == "average" else "peak"
 
                 request = CaptureRequest(
                     name=name.strip(),
@@ -255,6 +276,9 @@ def make_handler(hub: StreamHub, capture_output_dir: str):
                     temperature=_field("temperature"),
                     weight=_field("weight"),
                     water_cut=water_cut,
+                    height_calc_mode=height_calc_mode,
+                    height_scale=_float_field("height_scale", 1.0),
+                    height_offset=_float_field("height_offset", 0.0),
                 )
                 if hub.submit_capture(request) is None:
                     self._send_json(409, {"ok": False, "error": "capture already in progress"})
