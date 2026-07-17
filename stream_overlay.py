@@ -12,11 +12,17 @@ from PIL import Image, ImageDraw, ImageFont
 
 from color_viewer import RoiRect, SegInstance
 from object_measure import (
+    DEFAULT_HEIGHT_CALC_MODE,
+    DEFAULT_HEIGHT_OFFSET,
+    DEFAULT_HEIGHT_SCALE,
+    format_height_mm_stream_label,
     format_instance_height_display,
+    format_lxw_stream_label,
     format_lxwxh_stream_label,
+    format_peak_height_mm_stream_label,
     format_plane_depth_stream_label,
-    instance_height_mm,
     oriented_box_from_mask,
+    resolve_capture_height_mm,
 )
 from sam_centerline import WaterCutAnalysis, draw_water_cut_overlay
 from yolo_sam_refine import SamRefiner, prepare_water_cut_box_prompts
@@ -25,6 +31,7 @@ SAM_COLOR_BGR = SamRefiner.SAM_COLOR_BGR
 LABEL_COLOR_BGR = (180, 60, 20)  # deep blue — high contrast on light scenes
 PLANE_SAMPLE_MARKER_BGR = (0, 0, 255)  # red dots for table plane samples
 MIN_HEIGHT_MARKER_BGR = (255, 80, 0)  # bright blue dots for peak-height pixels
+AVERAGE_HEIGHT_MARKER_BGR = (0, 255, 120)  # neon green dots for mean-depth pixels
 LABEL_OUTLINE_BGR = (255, 255, 255)
 YOLO_CONTOUR_BGR = (0, 255, 0)
 YOLO_OBB_BGR = (0, 220, 120)
@@ -65,11 +72,18 @@ def format_water_cut_record_line(
     return "water_cut: ---", None
 
 
-def format_capture_lw_label(instance: SegInstance) -> str:
-    height_mm = (
-        instance.peak_height_mm
-        if np.isfinite(instance.peak_height_mm)
-        else instance.height_mm
+def format_capture_lw_label(
+    instance: SegInstance,
+    *,
+    calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
+) -> str:
+    height_mm = resolve_capture_height_mm(
+        instance,
+        calc_mode=calc_mode,
+        height_scale=height_scale,
+        height_offset=height_offset,
     )
     metric = format_lxwxh_stream_label(
         instance.length_mm,
@@ -97,16 +111,37 @@ def build_capture_record_info(
     weight: str,
     water_cut_enabled: bool = False,
     water_cut_overlays: list["WaterCutOverlay"] | None = None,
+    height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
 ) -> CaptureRecordInfo:
     primary = instances[0] if instances else None
-    lw_text = format_capture_lw_label(primary) if primary is not None else "LxWxH: ---"
+    lw_text = (
+        format_capture_lw_label(
+            primary,
+            calc_mode=height_calc_mode,
+            height_scale=height_scale,
+            height_offset=height_offset,
+        )
+        if primary is not None
+        else "LxWxH: ---"
+    )
     water_cut_line, water_cut_mm = format_water_cut_record_line(
         water_cut_overlays,
         enabled=water_cut_enabled,
     )
 
     return CaptureRecordInfo(
-        height=format_instance_height_display(primary) if primary is not None else "---",
+        height=(
+            format_instance_height_display(
+                primary,
+                calc_mode=height_calc_mode,
+                height_scale=height_scale,
+                height_offset=height_offset,
+            )
+            if primary is not None
+            else "---"
+        ),
         temperature=temperature,
         weight=weight,
         lw_text=lw_text,
@@ -238,7 +273,18 @@ def _put_text_outlined(
     cv2.putText(image_bgr, text, org, font, scale, color, thickness, cv2.LINE_AA)
 
 
-def _format_lwh_stream_label(instance: SegInstance) -> str | None:
+def _format_lwh_stream_label(
+    instance: SegInstance,
+    *,
+    split_height_labels: bool = False,
+) -> str | None:
+    if split_height_labels:
+        return format_lxw_stream_label(
+            instance.length_mm,
+            instance.width_mm,
+            instance.length_px,
+            instance.width_px,
+        )
     height_mm = (
         instance.peak_height_mm
         if np.isfinite(instance.peak_height_mm)
@@ -285,6 +331,29 @@ def _draw_peak_height_markers(frame: np.ndarray, instances: list[SegInstance]) -
             peak_mask = cv2.dilate(peak_mask, kernel, iterations=1)
 
         frame[peak_mask > 0] = MIN_HEIGHT_MARKER_BGR
+
+
+def _draw_average_height_markers(frame: np.ndarray, instances: list[SegInstance]) -> None:
+    """Paint pixels closest to mean depth in neon green (ties all shown)."""
+    height, width = frame.shape[:2]
+    for instance in instances:
+        points = getattr(instance, "average_height_points", None) or []
+        if not points:
+            continue
+
+        avg_mask = np.zeros((height, width), dtype=np.uint8)
+        for u, v in points:
+            if 0 <= u < width and 0 <= v < height:
+                avg_mask[v, u] = 255
+
+        if not np.any(avg_mask):
+            continue
+
+        if len(points) <= 8:
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+            avg_mask = cv2.dilate(avg_mask, kernel, iterations=1)
+
+        frame[avg_mask > 0] = AVERAGE_HEIGHT_MARKER_BGR
 
 
 def _is_full_frame_roi(roi: RoiRect, width: int, height: int) -> bool:
@@ -390,6 +459,7 @@ def _draw_instance_labels(
     water_cut_overlays: list[WaterCutOverlay] | None,
     *,
     label_size_factor: float = LABEL_SIZE_FACTOR,
+    split_height_labels: bool = False,
 ) -> None:
     label_scale = label_size_factor * max(0.75, min(1.2, frame.shape[1] / 550.0))
     line_height = max(24, int(round(34 * label_scale)))
@@ -399,7 +469,10 @@ def _draw_instance_labels(
     line_index = 0
     thickness = max(2, int(round(2 * label_size_factor)))
     for instance in instances:
-        metric = _format_lwh_stream_label(instance)
+        metric = _format_lwh_stream_label(
+            instance,
+            split_height_labels=split_height_labels,
+        )
         if metric is None:
             continue
         text = f"{line_index}: {metric}"
@@ -411,6 +484,23 @@ def _draw_instance_labels(
             thickness=thickness,
         )
         line_index += 1
+
+        if split_height_labels:
+            for height_label in (
+                format_height_mm_stream_label(instance.height_mm),
+                format_peak_height_mm_stream_label(instance.peak_height_mm),
+            ):
+                if height_label is None:
+                    continue
+                text = f"{line_index}: {height_label}"
+                _put_text_outlined(
+                    frame,
+                    text,
+                    (x0, y0 + line_index * line_height),
+                    scale=label_scale,
+                    thickness=thickness,
+                )
+                line_index += 1
 
         plane_label = format_plane_depth_stream_label(instance.z_plane_ref_mm)
         if plane_label is not None:
@@ -515,6 +605,7 @@ def compose_stream_frame(
     label_instances: list[SegInstance] | None = None,
     draw_oriented_boxes: bool = False,
     label_size_factor: float = LABEL_SIZE_FACTOR,
+    split_height_labels: bool = False,
 ) -> np.ndarray:
     frame = image_bgr.copy()
     labels = label_instances if label_instances is not None else instances
@@ -525,11 +616,13 @@ def compose_stream_frame(
         _draw_instance_oriented_boxes(frame, instances)
     _draw_plane_sample_markers(frame, instances)
     _draw_peak_height_markers(frame, instances)
+    _draw_average_height_markers(frame, instances)
     _draw_instance_labels(
         frame,
         labels,
         water_cut_overlays,
         label_size_factor=label_size_factor,
+        split_height_labels=split_height_labels,
     )
 
     if water_cut_overlays:

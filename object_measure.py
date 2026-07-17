@@ -96,6 +96,48 @@ def depth_p90_for_mask(depth_mm: np.ndarray, mask: np.ndarray) -> float:
     return float(np.percentile(valid, 90))
 
 
+def depth_mean_for_mask(depth_mm: np.ndarray, mask: np.ndarray) -> float:
+    """Mean of valid depth inside mask (used for mean-based object height)."""
+    if mask is None or not np.any(mask):
+        return float("nan")
+
+    values = depth_mm[mask.astype(bool)]
+    valid = values[np.isfinite(values) & (values > 0)]
+    if valid.size == 0:
+        return float("nan")
+    return float(np.mean(valid))
+
+
+def mean_depth_points_in_mask(
+    mask: np.ndarray,
+    depth_mm: np.ndarray,
+) -> list[tuple[int, int]]:
+    """Pixels whose depth is closest to the mask mean depth (ties all included)."""
+    if mask is None or not np.any(mask):
+        return []
+
+    mask_bool = mask.astype(bool)
+    depths = depth_mm.astype(np.float32)
+    valid = mask_bool & np.isfinite(depths) & (depths > 0)
+    if not np.any(valid):
+        return []
+
+    valid_depths = depths[valid]
+    mean_depth = float(np.mean(valid_depths))
+    abs_diff = np.abs(depths - mean_depth)
+    # Ignore invalid pixels by setting a large sentinel before taking the min.
+    abs_diff = np.where(valid, abs_diff, np.inf)
+    min_diff = float(np.min(abs_diff))
+    if not np.isfinite(min_diff):
+        return []
+
+    tie_mask = valid & (abs_diff == min_diff)
+    ys, xs = np.where(tie_mask)
+    if xs.size == 0:
+        return []
+    return [(int(x), int(y)) for x, y in zip(xs.tolist(), ys.tolist())]
+
+
 def object_height_from_plane(z_plane_ref_mm: float, z_object_mm: float) -> float:
     """Physical object height = plane depth - object depth at representative point."""
     if not np.isfinite(z_plane_ref_mm) or not np.isfinite(z_object_mm):
@@ -346,7 +388,9 @@ def measure_mask_mm(
     if z_plane_ref_mm is None or not np.isfinite(z_plane_ref_mm):
         height_mm = float("nan")
     else:
-        height_mm = object_height_from_plane(z_plane_ref_mm, z_object_mm)
+        # Mean surface depth inside mask -> average object height vs plane.
+        z_mean_mm = depth_mean_for_mask(depth_mm, mask)
+        height_mm = object_height_from_plane(z_plane_ref_mm, z_mean_mm)
 
     return RotatedMeasure(
         box_pts=box,
@@ -380,6 +424,31 @@ def format_lxwxh_stream_label(
     return None
 
 
+def format_lxw_stream_label(
+    length_mm: float,
+    width_mm: float,
+    length_px: float = float("nan"),
+    width_px: float = float("nan"),
+) -> str | None:
+    if np.isfinite(length_mm) and np.isfinite(width_mm):
+        return f"LxW:{length_mm:.1f}mm x {width_mm:.1f}mm"
+    if np.isfinite(length_px) and np.isfinite(width_px):
+        return f"LxW:{length_px:.1f}px x {width_px:.1f}px"
+    return None
+
+
+def format_height_mm_stream_label(height_mm: float) -> str | None:
+    if np.isfinite(height_mm):
+        return f"height_mm: {height_mm:.1f}mm"
+    return None
+
+
+def format_peak_height_mm_stream_label(peak_height_mm: float) -> str | None:
+    if np.isfinite(peak_height_mm):
+        return f"peak_height_mm: {peak_height_mm:.1f}mm"
+    return None
+
+
 def format_plane_depth_stream_label(z_plane_ref_mm: float) -> str | None:
     if np.isfinite(z_plane_ref_mm) and z_plane_ref_mm > 0:
         return f"plane_depth: {z_plane_ref_mm:.1f}mm;"
@@ -399,10 +468,38 @@ def format_lw_label(
     return None
 
 
-def instance_height_mm(instance) -> float:
-    """Best available object height in mm (peak height preferred)."""
+HEIGHT_CALC_MODE_PEAK = "peak"
+HEIGHT_CALC_MODE_AVERAGE = "average"
+DEFAULT_HEIGHT_CALC_MODE = HEIGHT_CALC_MODE_PEAK
+DEFAULT_HEIGHT_SCALE = 1.0
+DEFAULT_HEIGHT_OFFSET = 0.0
+
+
+def normalize_height_calc_mode(value: object | None) -> str:
+    """Return peak|average; unknown / empty values default to peak."""
+    if value is None:
+        return DEFAULT_HEIGHT_CALC_MODE
+    text = str(value).strip().lower()
+    if text == HEIGHT_CALC_MODE_AVERAGE:
+        return HEIGHT_CALC_MODE_AVERAGE
+    return DEFAULT_HEIGHT_CALC_MODE
+
+
+def instance_height_mm(
+    instance,
+    *,
+    calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+) -> float:
+    """Raw object height in mm by calc mode (peak preferred by default)."""
     peak = getattr(instance, "peak_height_mm", float("nan"))
     body = getattr(instance, "height_mm", float("nan"))
+    mode = normalize_height_calc_mode(calc_mode)
+    if mode == HEIGHT_CALC_MODE_AVERAGE:
+        if np.isfinite(body):
+            return float(body)
+        if np.isfinite(peak):
+            return float(peak)
+        return float("nan")
     if np.isfinite(peak):
         return float(peak)
     if np.isfinite(body):
@@ -410,8 +507,49 @@ def instance_height_mm(instance) -> float:
     return float("nan")
 
 
-def format_instance_height_display(instance) -> str:
-    height_mm = instance_height_mm(instance)
+def apply_height_transform(
+    raw_height_mm: float,
+    *,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
+) -> float:
+    """final_height = raw_height * height_scale + height_offset."""
+    if not np.isfinite(raw_height_mm):
+        return float("nan")
+    scale = float(height_scale) if np.isfinite(height_scale) else DEFAULT_HEIGHT_SCALE
+    offset = float(height_offset) if np.isfinite(height_offset) else DEFAULT_HEIGHT_OFFSET
+    return float(raw_height_mm * scale + offset)
+
+
+def resolve_capture_height_mm(
+    instance,
+    *,
+    calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
+) -> float:
+    """Select peak/average raw height, then apply scale/offset for capture API."""
+    raw = instance_height_mm(instance, calc_mode=calc_mode)
+    return apply_height_transform(
+        raw,
+        height_scale=height_scale,
+        height_offset=height_offset,
+    )
+
+
+def format_instance_height_display(
+    instance,
+    *,
+    calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
+) -> str:
+    height_mm = resolve_capture_height_mm(
+        instance,
+        calc_mode=calc_mode,
+        height_scale=height_scale,
+        height_offset=height_offset,
+    )
     if np.isfinite(height_mm):
         return f"{height_mm:.1f}mm"
     return "---"

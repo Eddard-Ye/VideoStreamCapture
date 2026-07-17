@@ -18,7 +18,7 @@ from camera_calib_2d import (
 )
 from capture_2d import close_camera, fetch_frame, list_devices, open_camera
 from color_viewer import RoiRect, SegInstance, YoloSegmenter
-from object_measure import instance_height_mm, oriented_box_from_mask
+from object_measure import oriented_box_from_mask, resolve_capture_height_mm
 from sam_centerline import analyze_water_cut
 from stream_common import (
     attach_oriented_boxes,
@@ -129,6 +129,9 @@ def process_capture_request(
             weight=request.weight,
             water_cut_enabled=request.water_cut,
             water_cut_overlays=record_overlays,
+            height_calc_mode=request.height_calc_mode,
+            height_scale=request.height_scale,
+            height_offset=request.height_offset,
         )
         frame = compose_record_frame(
             image_bgr,
@@ -148,7 +151,16 @@ def process_capture_request(
             if record_info.water_cut_mm is None or not np.isfinite(record_info.water_cut_mm)
             else round(float(record_info.water_cut_mm), 1)
         )
-        primary_height_mm = None if primary is None else instance_height_mm(primary)
+        primary_height_mm = (
+            None
+            if primary is None
+            else resolve_capture_height_mm(
+                primary,
+                calc_mode=request.height_calc_mode,
+                height_scale=request.height_scale,
+                height_offset=request.height_offset,
+            )
+        )
         return {
             "ok": True,
             "fileName": file_name,

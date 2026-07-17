@@ -231,6 +231,7 @@ class SegInstance:
     angle_deg: float = float("nan")
     peak_height_mm: float = float("nan")
     peak_height_points: list[tuple[int, int]] = field(default_factory=list)
+    average_height_points: list[tuple[int, int]] = field(default_factory=list)
     z_plane_ref_mm: float = float("nan")
     plane_sample_points: list[tuple[int, int]] = field(default_factory=list)
     sam_regions: list[SamSubRegion] = field(default_factory=list)

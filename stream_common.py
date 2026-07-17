@@ -13,8 +13,7 @@ import numpy as np
 from color_viewer import SegInstance
 from object_measure import (
     format_lw_label,
-    format_lxwxh_stream_label,
-    instance_height_mm,
+    format_lxw_stream_label,
     oriented_box_metrics_from_mask,
 )
 from stream_overlay import WaterCutOverlay
@@ -72,12 +71,9 @@ def build_status(
             "length_px": None if not np.isfinite(instance.length_px) else round(instance.length_px, 1),
             "width_px": None if not np.isfinite(instance.width_px) else round(instance.width_px, 1),
         }
-        label = format_lxwxh_stream_label(
+        label = format_lxw_stream_label(
             instance.length_mm,
             instance.width_mm,
-            instance.peak_height_mm
-            if np.isfinite(instance.peak_height_mm)
-            else instance.height_mm,
             instance.length_px,
             instance.width_px,
         )
@@ -94,13 +90,15 @@ def build_status(
             item["length"] = round(instance.length_mm, 1)
             item["width"] = round(instance.width_mm, 1)
             item["unit"] = "mm"
-        height_mm = instance_height_mm(instance)
-        if np.isfinite(height_mm):
-            item["height_mm"] = round(float(height_mm), 1)
+        if np.isfinite(instance.height_mm):
+            item["height_mm"] = round(float(instance.height_mm), 1)
         if np.isfinite(instance.peak_height_mm):
             item["peak_height_mm"] = round(float(instance.peak_height_mm), 2)
         if instance.peak_height_points:
             item["peak_height_px"] = [[int(u), int(v)] for u, v in instance.peak_height_points]
+        average_points = getattr(instance, "average_height_points", None) or []
+        if average_points:
+            item["average_height_px"] = [[int(u), int(v)] for u, v in average_points]
         if np.isfinite(instance.z_plane_ref_mm):
             item["z_plane_ref_mm"] = round(float(instance.z_plane_ref_mm), 2)
         if instance.plane_sample_points:
