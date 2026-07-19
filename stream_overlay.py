@@ -277,6 +277,9 @@ def _format_lwh_stream_label(
     instance: SegInstance,
     *,
     split_height_labels: bool = False,
+    calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
 ) -> str | None:
     if split_height_labels:
         return format_lxw_stream_label(
@@ -285,10 +288,11 @@ def _format_lwh_stream_label(
             instance.length_px,
             instance.width_px,
         )
-    height_mm = (
-        instance.peak_height_mm
-        if np.isfinite(instance.peak_height_mm)
-        else instance.height_mm
+    height_mm = resolve_capture_height_mm(
+        instance,
+        calc_mode=calc_mode,
+        height_scale=height_scale,
+        height_offset=height_offset,
     )
     return format_lxwxh_stream_label(
         instance.length_mm,
@@ -460,6 +464,9 @@ def _draw_instance_labels(
     *,
     label_size_factor: float = LABEL_SIZE_FACTOR,
     split_height_labels: bool = False,
+    height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
 ) -> None:
     label_scale = label_size_factor * max(0.75, min(1.2, frame.shape[1] / 550.0))
     line_height = max(24, int(round(34 * label_scale)))
@@ -472,6 +479,9 @@ def _draw_instance_labels(
         metric = _format_lwh_stream_label(
             instance,
             split_height_labels=split_height_labels,
+            calc_mode=height_calc_mode,
+            height_scale=height_scale,
+            height_offset=height_offset,
         )
         if metric is None:
             continue
@@ -577,6 +587,9 @@ def compose_record_frame(
     label_instances: list[SegInstance] | None = None,
     draw_oriented_boxes: bool = True,
     label_size_factor: float = LABEL_SIZE_FACTOR,
+    height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
 ) -> np.ndarray:
     frame = compose_stream_frame(
         image_bgr,
@@ -586,6 +599,9 @@ def compose_record_frame(
         label_instances=label_instances,
         draw_oriented_boxes=draw_oriented_boxes,
         label_size_factor=label_size_factor,
+        height_calc_mode=height_calc_mode,
+        height_scale=height_scale,
+        height_offset=height_offset,
     )
     _draw_record_info_block(
         frame,
@@ -606,6 +622,9 @@ def compose_stream_frame(
     draw_oriented_boxes: bool = False,
     label_size_factor: float = LABEL_SIZE_FACTOR,
     split_height_labels: bool = False,
+    height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_scale: float = DEFAULT_HEIGHT_SCALE,
+    height_offset: float = DEFAULT_HEIGHT_OFFSET,
 ) -> np.ndarray:
     frame = image_bgr.copy()
     labels = label_instances if label_instances is not None else instances
@@ -623,6 +642,9 @@ def compose_stream_frame(
         water_cut_overlays,
         label_size_factor=label_size_factor,
         split_height_labels=split_height_labels,
+        height_calc_mode=height_calc_mode,
+        height_scale=height_scale,
+        height_offset=height_offset,
     )
 
     if water_cut_overlays:

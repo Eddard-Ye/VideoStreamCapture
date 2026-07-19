@@ -215,6 +215,9 @@ def process_orbbec_capture_request(
             label_instances=labels,
             draw_oriented_boxes=True,
             label_size_factor=label_size_factor,
+            height_calc_mode=request.height_calc_mode,
+            height_scale=request.height_scale,
+            height_offset=request.height_offset,
         )
         output_path = save_capture_jpeg(frame, output_dir, request.name, jpeg_quality)
         file_name = os.path.basename(output_path)
