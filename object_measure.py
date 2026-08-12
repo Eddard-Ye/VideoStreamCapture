@@ -370,14 +370,26 @@ def measure_mask_mm(
     intrinsics: RgbIntrinsics,
     z_plane_ref_mm: float | None = None,
 ) -> RotatedMeasure | None:
+    """Measure OBB size in mm; LxW uses plane depth when available.
+
+    Length/width are converted with the table-plane reference depth so short
+    (底片) and tall (成品) objects share the same scale. Object-surface depth
+    (mask p90) is kept only as fallback when plane depth is missing, and for
+    the returned ``z_object_mm`` field. Height still uses mean surface vs plane.
+    """
     contour = largest_contour_from_mask(mask)
     if contour is None:
         return None
 
     z_object_mm = depth_p90_for_mask(depth_mm, mask)
+    # Prefer plane depth for LxW so product height does not bias diameter.
+    if z_plane_ref_mm is not None and np.isfinite(z_plane_ref_mm) and z_plane_ref_mm > 0:
+        z_lw_mm = float(z_plane_ref_mm)
+    else:
+        z_lw_mm = z_object_mm
     measured = min_area_rect_measure_mm(
         contour,
-        z_object_mm,
+        z_lw_mm,
         intrinsics.fx,
         intrinsics.fy,
     )
