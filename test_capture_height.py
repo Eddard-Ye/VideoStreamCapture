@@ -58,6 +58,18 @@ def test_capture_request_defaults() -> None:
     assert request.height_calc_mode == "peak"
     assert request.height_scale == 1.0
     assert request.height_offset == 0.0
+    assert request.lw_height_mm == 0.0
+
+
+def test_resolve_lw_depth_mm_subtracts_lw_height() -> None:
+    from object_measure import resolve_lw_depth_mm
+
+    assert resolve_lw_depth_mm(500.0, 400.0) == 500.0
+    assert resolve_lw_depth_mm(500.0, 400.0, lw_height_mm=30.0) == 470.0
+    # Invalid (non-positive) result falls back to plane depth.
+    assert resolve_lw_depth_mm(500.0, 400.0, lw_height_mm=500.0) == 500.0
+    # No plane: fall back to object depth.
+    assert resolve_lw_depth_mm(float("nan"), 400.0, lw_height_mm=30.0) == 400.0
 
 
 def test_stream_lxwxh_label_uses_capture_height_transform() -> None:

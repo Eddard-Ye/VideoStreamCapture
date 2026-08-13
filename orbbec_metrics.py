@@ -31,6 +31,28 @@ from stream_server import CaptureRequest
 from yolo_sam_refine import SamRefiner, prepare_water_cut_box_prompts, run_water_cut_box_sam
 
 
+def update_orbbec_instance_lw_mm(
+    instances: list[SegInstance],
+    depth_mm: np.ndarray,
+    intrinsics: RgbIntrinsics,
+    *,
+    lw_height_mm: float = 0.0,
+) -> None:
+    """Recompute LxW only using ``z_lw = plane - lw_height_mm``; leave H untouched."""
+    for instance in instances:
+        measured = measure_mask_mm(
+            instance.mask,
+            depth_mm,
+            intrinsics,
+            z_plane_ref_mm=instance.z_plane_ref_mm,
+            lw_height_mm=lw_height_mm,
+        )
+        if measured is None:
+            continue
+        instance.length_mm = measured.length_mm
+        instance.width_mm = measured.width_mm
+
+
 def intrinsics_from_orbbec(intrinsic) -> RgbIntrinsics:
     return RgbIntrinsics(
         fx=float(intrinsic.fx),
@@ -185,6 +207,20 @@ def process_orbbec_capture_request(
 ) -> dict:
     try:
         labels = label_instances if label_instances is not None else instances
+        # Capture-time LxW uses z_lw = plane_depth - lw_height_mm (H unchanged).
+        update_orbbec_instance_lw_mm(
+            instances,
+            depth_mm,
+            intrinsics,
+            lw_height_mm=request.lw_height_mm,
+        )
+        if labels is not instances:
+            update_orbbec_instance_lw_mm(
+                labels,
+                depth_mm,
+                intrinsics,
+                lw_height_mm=request.lw_height_mm,
+            )
         record_overlays: list[WaterCutOverlay] = []
         if request.water_cut:
             print("Capture requested with water-cut...")

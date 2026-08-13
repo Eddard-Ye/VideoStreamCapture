@@ -364,29 +364,54 @@ def min_area_rect_measure_mm(
     return box, float(length_mm), float(width_mm), angle_deg
 
 
+def resolve_lw_depth_mm(
+    z_plane_ref_mm: float | None,
+    z_object_mm: float,
+    *,
+    lw_height_mm: float = 0.0,
+) -> float:
+    """Depth used for LxW pinhole conversion.
+
+    Prefer table-plane depth. When ``lw_height_mm`` is set (capture-time height
+    above the plane), use ``plane - lw_height_mm`` so lateral size is estimated
+    at that working height. Object height H is unaffected by this helper.
+    """
+    if z_plane_ref_mm is not None and np.isfinite(z_plane_ref_mm) and z_plane_ref_mm > 0:
+        offset = float(lw_height_mm) if np.isfinite(lw_height_mm) else 0.0
+        z_lw_mm = float(z_plane_ref_mm) - offset
+        if np.isfinite(z_lw_mm) and z_lw_mm > 0:
+            return z_lw_mm
+        return float(z_plane_ref_mm)
+    return float(z_object_mm) if np.isfinite(z_object_mm) else float("nan")
+
+
 def measure_mask_mm(
     mask: np.ndarray,
     depth_mm: np.ndarray,
     intrinsics: RgbIntrinsics,
     z_plane_ref_mm: float | None = None,
+    *,
+    lw_height_mm: float = 0.0,
 ) -> RotatedMeasure | None:
     """Measure OBB size in mm; LxW uses plane depth when available.
 
     Length/width are converted with the table-plane reference depth so short
-    (底片) and tall (成品) objects share the same scale. Object-surface depth
-    (mask p90) is kept only as fallback when plane depth is missing, and for
-    the returned ``z_object_mm`` field. Height still uses mean surface vs plane.
+    (底片) and tall (成品) objects share the same scale. Optional
+    ``lw_height_mm`` subtracts from plane depth for LxW only
+    (``z_lw = plane - lw_height_mm``). Object-surface depth (mask p90) is kept
+    only as fallback when plane depth is missing, and for the returned
+    ``z_object_mm`` field. Height still uses mean surface vs full plane depth.
     """
     contour = largest_contour_from_mask(mask)
     if contour is None:
         return None
 
     z_object_mm = depth_p90_for_mask(depth_mm, mask)
-    # Prefer plane depth for LxW so product height does not bias diameter.
-    if z_plane_ref_mm is not None and np.isfinite(z_plane_ref_mm) and z_plane_ref_mm > 0:
-        z_lw_mm = float(z_plane_ref_mm)
-    else:
-        z_lw_mm = z_object_mm
+    z_lw_mm = resolve_lw_depth_mm(
+        z_plane_ref_mm,
+        z_object_mm,
+        lw_height_mm=lw_height_mm,
+    )
     measured = min_area_rect_measure_mm(
         contour,
         z_lw_mm,

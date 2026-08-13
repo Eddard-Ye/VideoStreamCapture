@@ -284,6 +284,7 @@ def run_stream(args: argparse.Namespace) -> int:
                         roi=roi,
                         label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                         split_height_labels=True,
+                        draw_metric_labels=False,
                     )
                     hub.set_frame(
                         encode_jpeg(preview, args.stream_width, args.jpeg_quality),
@@ -335,6 +336,7 @@ def run_stream(args: argparse.Namespace) -> int:
                     roi=roi,
                     label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                     split_height_labels=True,
+                    draw_metric_labels=False,
                 )
                 hub.set_frame(
                     encode_jpeg(preview, args.stream_width, args.jpeg_quality),
@@ -363,6 +365,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 roi=roi,
                 label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                 split_height_labels=True,
+                draw_metric_labels=False,
             )
             jpeg = encode_jpeg(frame, args.stream_width, args.jpeg_quality)
 
