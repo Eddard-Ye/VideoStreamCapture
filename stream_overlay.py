@@ -464,6 +464,7 @@ def _draw_instance_labels(
     *,
     label_size_factor: float = LABEL_SIZE_FACTOR,
     split_height_labels: bool = False,
+    draw_metric_labels: bool = True,
     height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
@@ -475,46 +476,18 @@ def _draw_instance_labels(
 
     line_index = 0
     thickness = max(2, int(round(2 * label_size_factor)))
-    for instance in instances:
-        metric = _format_lwh_stream_label(
-            instance,
-            split_height_labels=split_height_labels,
-            calc_mode=height_calc_mode,
-            height_scale=height_scale,
-            height_offset=height_offset,
-        )
-        if metric is None:
-            continue
-        text = f"{line_index}: {metric}"
-        _put_text_outlined(
-            frame,
-            text,
-            (x0, y0 + line_index * line_height),
-            scale=label_scale,
-            thickness=thickness,
-        )
-        line_index += 1
-
-        if split_height_labels:
-            for height_label in (
-                format_height_mm_stream_label(instance.height_mm),
-                format_peak_height_mm_stream_label(instance.peak_height_mm),
-            ):
-                if height_label is None:
-                    continue
-                text = f"{line_index}: {height_label}"
-                _put_text_outlined(
-                    frame,
-                    text,
-                    (x0, y0 + line_index * line_height),
-                    scale=label_scale,
-                    thickness=thickness,
-                )
-                line_index += 1
-
-        plane_label = format_plane_depth_stream_label(instance.z_plane_ref_mm)
-        if plane_label is not None:
-            text = f"{line_index}: {plane_label}"
+    if draw_metric_labels:
+        for instance in instances:
+            metric = _format_lwh_stream_label(
+                instance,
+                split_height_labels=split_height_labels,
+                calc_mode=height_calc_mode,
+                height_scale=height_scale,
+                height_offset=height_offset,
+            )
+            if metric is None:
+                continue
+            text = f"{line_index}: {metric}"
             _put_text_outlined(
                 frame,
                 text,
@@ -523,6 +496,35 @@ def _draw_instance_labels(
                 thickness=thickness,
             )
             line_index += 1
+
+            if split_height_labels:
+                for height_label in (
+                    format_height_mm_stream_label(instance.height_mm),
+                    format_peak_height_mm_stream_label(instance.peak_height_mm),
+                ):
+                    if height_label is None:
+                        continue
+                    text = f"{line_index}: {height_label}"
+                    _put_text_outlined(
+                        frame,
+                        text,
+                        (x0, y0 + line_index * line_height),
+                        scale=label_scale,
+                        thickness=thickness,
+                    )
+                    line_index += 1
+
+            plane_label = format_plane_depth_stream_label(instance.z_plane_ref_mm)
+            if plane_label is not None:
+                text = f"{line_index}: {plane_label}"
+                _put_text_outlined(
+                    frame,
+                    text,
+                    (x0, y0 + line_index * line_height),
+                    scale=label_scale,
+                    thickness=thickness,
+                )
+                line_index += 1
 
     if water_cut_overlays:
         base_y = y0 + line_index * line_height + int(round(8 * label_size_factor))
@@ -622,6 +624,7 @@ def compose_stream_frame(
     draw_oriented_boxes: bool = False,
     label_size_factor: float = LABEL_SIZE_FACTOR,
     split_height_labels: bool = False,
+    draw_metric_labels: bool = True,
     height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
@@ -642,6 +645,7 @@ def compose_stream_frame(
         water_cut_overlays,
         label_size_factor=label_size_factor,
         split_height_labels=split_height_labels,
+        draw_metric_labels=draw_metric_labels,
         height_calc_mode=height_calc_mode,
         height_scale=height_scale,
         height_offset=height_offset,

@@ -24,6 +24,9 @@ class CaptureRequest:
     height_calc_mode: str = "peak"
     height_scale: float = 1.0
     height_offset: float = 0.0
+    # Height above table plane used only for LxW depth: z_lw = plane - lw_height_mm.
+    # Does not affect the displayed/API object height H.
+    lw_height_mm: float = 0.0
     event: threading.Event = field(default_factory=threading.Event)
     result: dict[str, Any] = field(default_factory=dict)
 
@@ -279,6 +282,7 @@ def make_handler(hub: StreamHub, capture_output_dir: str):
                     height_calc_mode=height_calc_mode,
                     height_scale=_float_field("height_scale", 1.0),
                     height_offset=_float_field("height_offset", 0.0),
+                    lw_height_mm=_float_field("lw_height_mm", 0.0),
                 )
                 if hub.submit_capture(request) is None:
                     self._send_json(409, {"ok": False, "error": "capture already in progress"})

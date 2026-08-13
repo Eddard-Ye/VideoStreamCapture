@@ -71,6 +71,15 @@ def main() -> int:
         help="For capture, add this offset after scale (default: 0.0).",
     )
     parser.add_argument(
+        "--lw-height-mm",
+        type=float,
+        default=0.0,
+        help=(
+            "For capture, height above plane used for LxW depth only: "
+            "z_lw = plane_depth - lw_height_mm (default: 0)."
+        ),
+    )
+    parser.add_argument(
         "--water-cut",
         action="store_true",
         help="For capture, compute and render water-cut width.",
@@ -100,6 +109,7 @@ def main() -> int:
                 "height_calc_mode": args.height_calc_mode,
                 "height_scale": float(args.height_scale),
                 "height_offset": float(args.height_offset),
+                "lw_height_mm": float(args.lw_height_mm),
             },
         )
     else:
