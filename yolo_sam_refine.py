@@ -356,12 +356,15 @@ def build_prompts_from_oriented_box(
     width_px: float,
     *,
     extent_ratio: float = 0.05,
+    bg_inset_ratio: float = 0.10,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Build five SAM foreground prompts from a YOLO mask oriented box.
+    """Build SAM prompts from a YOLO mask oriented box.
 
-    Uses the box center plus four points offset along the long and short axes.
-    Each offset is ``extent_ratio`` times the corresponding side length, so a
-    longer object places long-axis prompts farther from center than short-axis ones.
+    Foreground: box center plus four points offset along the long and short axes
+    (``extent_ratio`` times the corresponding side).
+
+    Background: midpoints of the two long sides, then inset along the short axis
+    by ``bg_inset_ratio`` times the box width (toward the rectangle interior).
     """
     if length_px < 1e-3 or width_px < 1e-3:
         raise RuntimeError("Invalid oriented box dimensions for prompt generation.")
@@ -369,6 +372,7 @@ def build_prompts_from_oriented_box(
     center, long_dir, short_dir = _oriented_box_axes(box)
     long_offset = float(extent_ratio) * float(length_px)
     short_offset = float(extent_ratio) * float(width_px)
+    bg_from_center = (0.5 - float(bg_inset_ratio)) * float(width_px)
 
     fg_points = np.array(
         [
@@ -380,8 +384,21 @@ def build_prompts_from_oriented_box(
         ],
         dtype=np.float32,
     )
-    labels = np.ones(len(fg_points), dtype=np.int64)
-    return fg_points, labels
+    bg_points = np.array(
+        [
+            center + short_dir * bg_from_center,
+            center - short_dir * bg_from_center,
+        ],
+        dtype=np.float32,
+    )
+    coords = np.vstack([fg_points, bg_points])
+    labels = np.concatenate(
+        [
+            np.ones(len(fg_points), dtype=np.int64),
+            np.zeros(len(bg_points), dtype=np.int64),
+        ]
+    )
+    return coords, labels
 
 
 def resolve_sam_checkpoint(checkpoint: str | Path | None) -> Path:
@@ -403,7 +420,7 @@ def prepare_water_cut_box_prompts(
     *,
     extent_ratio: float = 0.05,
 ) -> SamSubRegion | None:
-    """Build oriented-box SAM foreground prompts for water-cut (no CV edge detection)."""
+    """Build oriented-box SAM prompts for water-cut: 5 foreground + 2 long-side background."""
     object_bool = object_mask.astype(bool)
     if not np.any(object_bool):
         return None
@@ -424,6 +441,9 @@ def prepare_water_cut_box_prompts(
         return None
 
     height, width = object_mask.shape[:2]
+    pt_coords = np.asarray(pt_coords, dtype=np.float32).reshape(-1, 2)
+    pt_coords[:, 0] = np.clip(pt_coords[:, 0], 0, max(0, width - 1))
+    pt_coords[:, 1] = np.clip(pt_coords[:, 1], 0, max(0, height - 1))
     return SamSubRegion(
         name="box_prompts",
         mask=np.zeros((height, width), dtype=bool),
@@ -677,6 +697,6 @@ class SamRefiner:
         for i in range(len(coords)):
             x, y = int(round(float(coords[i, 0]))), int(round(float(coords[i, 1])))
             is_fg = int(labels[i]) == 1
-            color = (90, 220, 30) if is_fg else (70, 70, 255)
+            color = (90, 220, 30) if is_fg else (220, 60, 180)
             cv2.circle(image_bgr, (x, y), 6, (255, 255, 255), 2, cv2.LINE_AA)
             cv2.circle(image_bgr, (x, y), 4, color, -1, cv2.LINE_AA)
