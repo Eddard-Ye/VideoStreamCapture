@@ -969,6 +969,7 @@ class ColorViewer:
                             draw_pca_axis=True,
                             draw_centerline=False,
                             clip_box=clip_box,
+                            clip_mask=region.mask,
                         )
                     continue
 

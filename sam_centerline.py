@@ -12,6 +12,7 @@ from render_contour_centerline import (
     centerline_dt_ridge_pca,
     centerline_fitodic_voronoi,
     fit_centerline_line_pca,
+    longest_mask_intersection_along_line,
     max_width_perpendicular_to_axis,
 )
 from extract_center_contour import mask_to_contours_xy
@@ -95,8 +96,8 @@ def analyze_water_cut(
     pca_width_samples: int = 160,
 ) -> WaterCutAnalysis | None:
     """
-    Compute Voronoi centerline inside mask and max chord perpendicular to PCA axis (水切宽度).
-    Coordinates are in full-image pixel space.
+    Compute Voronoi centerline inside mask and max (normal ∩ mask) chord (水切宽度).
+    Coordinates are in full-image pixel space. The width segment stays inside the mask.
     """
     mask_bool = mask.astype(bool)
     if not np.any(mask_bool):
@@ -185,11 +186,14 @@ def draw_water_cut_overlay(
     draw_centerline: bool = True,
     width_line_only: bool = False,
     clip_box: np.ndarray | None = None,
+    clip_mask: np.ndarray | None = None,
 ) -> None:
     """Draw water-cut visualization on ``image_bgr``.
 
     When ``width_line_only`` is True, only the max-width measurement chord is drawn.
     Otherwise draws the width chord, optional centerline/PCA axis, and a cutWidth label.
+    The width chord is the mask intersection (already clipped). The PCA axis is clipped
+    to ``clip_mask`` when provided, else to ``clip_box``.
     """
     ca = tuple(int(round(v)) for v in analysis.width_center)
     ea = tuple(int(round(v)) for v in analysis.width_end_a)
@@ -206,7 +210,19 @@ def draw_water_cut_overlay(
     cv2.circle(image_bgr, ca, 4, (0, 215, 255), -1, cv2.LINE_AA)
 
     if draw_pca_axis:
-        if clip_box is not None:
+        p0 = p1 = None
+        if clip_mask is not None and np.any(clip_mask):
+            w_pca, a_pca, b_pca = longest_mask_intersection_along_line(
+                clip_mask.astype(bool),
+                analysis.pca_centroid[0],
+                analysis.pca_centroid[1],
+                analysis.pca_axis[0],
+                analysis.pca_axis[1],
+            )
+            if w_pca > 0:
+                p0 = (int(round(a_pca[0])), int(round(a_pca[1])))
+                p1 = (int(round(b_pca[0])), int(round(b_pca[1])))
+        elif clip_box is not None:
             p0, p1 = pca_axis_segment_in_box(analysis.pca_centroid, analysis.pca_axis, clip_box)
         else:
             c = np.asarray(analysis.pca_centroid, dtype=np.float64)
@@ -216,7 +232,8 @@ def draw_water_cut_overlay(
             span = max(w, h) * 2.0
             p0 = (int(round(c[0] - u[0] * span)), int(round(c[1] - u[1] * span)))
             p1 = (int(round(c[0] + u[0] * span)), int(round(c[1] + u[1] * span)))
-        cv2.line(image_bgr, p0, p1, (20, 120, 255), 2, cv2.LINE_AA)
+        if p0 is not None and p1 is not None:
+            cv2.line(image_bgr, p0, p1, (20, 120, 255), 2, cv2.LINE_AA)
 
     if np.isfinite(analysis.water_cut_width_mm) and analysis.water_cut_width_mm > 0:
         label = f"cutWidth: {analysis.water_cut_width_mm:.1f} mm"
