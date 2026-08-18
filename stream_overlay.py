@@ -669,6 +669,7 @@ def compose_stream_frame(
                 draw_pca_axis=True,
                 draw_centerline=False,
                 clip_box=item.box_pts,
+                clip_mask=item.sam_mask,
             )
         _draw_water_cut_sam_prompts(frame, water_cut_overlays)
     else:

@@ -392,6 +392,77 @@ def tangent_perpendicular(path: Sequence[tuple[float, float]], i: int) -> tuple[
     return tx, ty, nx, ny
 
 
+def longest_mask_intersection_along_line(
+    mask: np.ndarray,
+    px: float,
+    py: float,
+    dx: float,
+    dy: float,
+) -> tuple[float, tuple[float, float], tuple[float, float]]:
+    """Longest connected run of ``mask`` along the infinite line through ``(px, py)``.
+
+    The returned segment endpoints lie on mask pixels, so the intersection does not
+    extend outside the mask (up to 1px rasterization). A start point outside the
+    mask is allowed: empty space is skipped until the line hits the mask.
+    Returns ``(0, (px, py), (px, py))`` if the line never hits the mask.
+    """
+    H, W = mask.shape
+    nlen = math.hypot(dx, dy) or 1.0
+    dx, dy = dx / nlen, dy / nlen
+    max_steps = int(math.hypot(H, W)) + 3
+
+    def walk(sign: float) -> list[tuple[float, float, bool]]:
+        out: list[tuple[float, float, bool]] = []
+        x, y = float(px), float(py)
+        last_rc: tuple[int, int] | None = None
+        for _ in range(max_steps):
+            xi, yi = int(round(x)), int(round(y))
+            if xi < 0 or yi < 0 or xi >= W or yi >= H:
+                break
+            if last_rc != (xi, yi):
+                out.append((x, y, bool(mask[yi, xi])))
+                last_rc = (xi, yi)
+            x += sign * dx
+            y += sign * dy
+        return out
+
+    neg = walk(-1.0)
+    pos = walk(1.0)
+    samples = list(reversed(neg[1:])) + pos
+    if not samples:
+        origin = (float(px), float(py))
+        return 0.0, origin, origin
+
+    best_len = -1.0
+    origin = (float(px), float(py))
+    best_a = best_b = origin
+    run_start: tuple[float, float] | None = None
+    run_last: tuple[float, float] | None = None
+
+    def close_run() -> None:
+        nonlocal best_len, best_a, best_b, run_start, run_last
+        if run_start is None or run_last is None:
+            return
+        length = math.hypot(run_last[0] - run_start[0], run_last[1] - run_start[1])
+        if length > best_len:
+            best_len = length
+            best_a, best_b = run_start, run_last
+        run_start = run_last = None
+
+    for x, y, inside in samples:
+        if inside:
+            if run_start is None:
+                run_start = (x, y)
+            run_last = (x, y)
+        else:
+            close_run()
+    close_run()
+
+    if best_len < 0:
+        return 0.0, origin, origin
+    return best_len, best_a, best_b
+
+
 def chord_along_normal(
     mask: np.ndarray,
     px: float,
@@ -399,29 +470,8 @@ def chord_along_normal(
     nx: float,
     ny: float,
 ) -> tuple[float, tuple[float, float], tuple[float, float]]:
-    """March from (px,py) along ±n until leaving mask; chord length = Euclidean distance between last inside points."""
-    H, W = mask.shape
-    nlen = math.hypot(nx, ny) or 1.0
-    nx, ny = nx / nlen, ny / nlen
-
-    def march(sign: float) -> tuple[float, float]:
-        x, y = float(px), float(py)
-        last_x, last_y = x, y
-        while True:
-            x += sign * nx
-            y += sign * ny
-            xi, yi = int(round(x)), int(round(y))
-            if xi < 0 or yi < 0 or xi >= W or yi >= H:
-                break
-            if not mask[yi, xi]:
-                break
-            last_x, last_y = x, y
-        return last_x, last_y
-
-    ax, ay = march(1.0)
-    bx, by = march(-1.0)
-    length = math.hypot(ax - bx, ay - by)
-    return length, (bx, by), (ax, ay)
+    """Longest (line ∩ mask) along the normal through ``(px, py)``."""
+    return longest_mask_intersection_along_line(mask, px, py, nx, ny)
 
 
 def max_perpendicular_width(
@@ -472,8 +522,12 @@ def max_width_perpendicular_to_axis(
     n_samples: int = 160,
 ) -> tuple[float, tuple[float, float], tuple[float, float], tuple[float, float], int]:
     """
-    Max chord with fixed normal ``n ⟂ u_axis``. Samples stations **on the PCA axis** (projection
-    span of the path), not along the cyan polyline — width is strictly vs. the fitted orange line.
+    Max connected (line ∩ mask) among lines with fixed normal ``n ⟂ u_axis``.
+
+    Candidate lines are parameterized by stations on the PCA axis (projection span
+    of the path). Each station only selects which parallel line to test; the chord
+    is the longest intersection of that infinite line with the mask, so endpoints
+    stay inside the mask even when the PCA station itself is outside.
     """
     if len(path) < 2:
         raise RuntimeError("Centerline too short.")
@@ -500,15 +554,19 @@ def max_width_perpendicular_to_axis(
         xi, yi = int(round(px)), int(round(py))
         if xi < 0 or yi < 0 or xi >= W or yi >= H:
             continue
-        w, ba, bb = chord_along_normal(mask, px, py, nx, ny)
+        w, ba, bb = longest_mask_intersection_along_line(mask, px, py, nx, ny)
+        if w <= 0:
+            continue
         if w > best_w:
             best_w = w
-            best = (px, py), ba, bb
+            cx = 0.5 * (ba[0] + bb[0])
+            cy = 0.5 * (ba[1] + bb[1])
+            best = (cx, cy), ba, bb
             best_k = k
     if best is None:
         raise RuntimeError("No on-axis sample inside mask; try denser centerline.")
-    (px, py), ba, bb = best
-    return best_w, (px, py), ba, bb, best_k
+    center_pt, ba, bb = best
+    return best_w, center_pt, ba, bb, best_k
 
 
 def clip_pca_line_to_image_global(

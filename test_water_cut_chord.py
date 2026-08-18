@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+"""Unit tests for water-cut normal ∩ mask intersection."""
+
+from __future__ import annotations
+
+import numpy as np
+
+from render_contour_centerline import (
+    longest_mask_intersection_along_line,
+    max_width_perpendicular_to_axis,
+)
+
+
+def test_intersection_from_outside_start_matches_rect_width() -> None:
+    mask = np.zeros((40, 80), dtype=bool)
+    mask[10:30, 20:60] = True  # 40px wide, 20px tall
+    # Start left of the rectangle on a horizontal line through its middle.
+    length, a, b = longest_mask_intersection_along_line(mask, 5.0, 20.0, 1.0, 0.0)
+    assert abs(length - 39.0) <= 1.5
+    xs = sorted((a[0], b[0]))
+    assert xs[0] >= 19.0
+    assert xs[1] <= 60.0
+    assert mask[int(round(a[1])), int(round(a[0]))]
+    assert mask[int(round(b[1])), int(round(b[0]))]
+
+
+def test_intersection_skips_gap_and_keeps_longest_run() -> None:
+    mask = np.zeros((20, 80), dtype=bool)
+    mask[8:12, 5:15] = True
+    mask[8:12, 20:60] = True  # longer run
+    length, a, b = longest_mask_intersection_along_line(mask, 0.0, 10.0, 1.0, 0.0)
+    xs = sorted((a[0], b[0]))
+    assert xs[0] >= 19.0
+    assert xs[1] <= 60.0
+    assert abs(length - 39.0) <= 1.5
+
+
+def test_max_width_uses_intersection_midpoint_inside_mask() -> None:
+    mask = np.zeros((50, 50), dtype=bool)
+    mask[15:35, 10:40] = True
+    path = [(x, 25.0) for x in range(12, 38)]
+    c = np.array([25.0, 25.0])
+    u = np.array([1.0, 0.0])
+    width, center, end_a, end_b, _ = max_width_perpendicular_to_axis(
+        mask, path, c, u, n_samples=32
+    )
+    assert width > 15.0
+    assert mask[int(round(center[1])), int(round(center[0]))]
+    assert mask[int(round(end_a[1])), int(round(end_a[0]))]
+    assert mask[int(round(end_b[1])), int(round(end_b[0]))]
+    for pt in (end_a, end_b, center):
+        assert 9.0 <= pt[0] <= 40.0
+        assert 14.0 <= pt[1] <= 35.0
