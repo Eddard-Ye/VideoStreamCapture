@@ -9,7 +9,7 @@ from render_contour_centerline import (
     longest_mask_intersection_along_line,
     max_width_perpendicular_to_axis,
 )
-from yolo_sam_refine import clip_sam_to_object_interior
+from yolo_sam_refine import build_prompts_from_oriented_box, clip_sam_to_object_interior
 
 
 def test_intersection_from_outside_start_matches_rect_width() -> None:
@@ -64,3 +64,17 @@ def test_clip_sam_to_object_interior_drops_crust_leak() -> None:
     assert clipped[40, 40]
     assert not clipped[12, 40]
     assert not clipped[67, 40]
+
+
+def test_oriented_box_prompts_include_long_side_background() -> None:
+    box = np.array([[10.0, 10.0], [90.0, 10.0], [90.0, 40.0], [10.0, 40.0]], dtype=np.float64)
+    coords, labels = build_prompts_from_oriented_box(box, length_px=80.0, width_px=30.0)
+    assert len(coords) == 7
+    assert int(np.sum(labels == 1)) == 5
+    assert int(np.sum(labels == 0)) == 2
+    bg = coords[labels == 0]
+    ys = sorted(float(p[1]) for p in bg)
+    # Long-edge midpoints (y=10 and y=40) inset 10% of width (3px) -> y=13 and y=37.
+    assert abs(ys[0] - 13.0) <= 0.6
+    assert abs(ys[1] - 37.0) <= 0.6
+    assert abs(float(np.mean(bg[:, 0])) - 50.0) <= 0.6

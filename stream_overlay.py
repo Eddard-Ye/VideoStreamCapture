@@ -561,14 +561,13 @@ def _draw_water_cut_sam_prompts(frame: np.ndarray, overlays: list[WaterCutOverla
             continue
         labels = np.asarray(item.prompt_labels).reshape(-1)
         coords = np.asarray(item.prompt_coords, dtype=np.float32).reshape(-1, 2)
-        fg = labels == 1
-        if not np.any(fg):
+        if len(coords) == 0:
             continue
-        SamRefiner.draw_prompts(frame, coords[fg], labels[fg])
+        SamRefiner.draw_prompts(frame, coords, labels)
 
 
 def _draw_live_water_cut_prompts(frame: np.ndarray, instances: list[SegInstance]) -> None:
-    """Draw oriented-box SAM foreground prompts for water-cut preview (no SAM run)."""
+    """Draw oriented-box SAM prompts for water-cut preview (no SAM run)."""
     for instance in instances:
         preview = prepare_water_cut_box_prompts(instance.mask)
         if (
