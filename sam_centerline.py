@@ -133,24 +133,25 @@ def analyze_water_cut(
 
     path_xy_loc = np.asarray(path_loc, dtype=np.float64)
     c_loc, u_axis = fit_centerline_line_pca(path_xy_loc)
+    path_global = _to_global(path_loc, ox, oy)
+    c_global = _to_global_pt((float(c_loc[0]), float(c_loc[1])), ox, oy)
+    u_tuple = (float(u_axis[0]), float(u_axis[1]))
+    # Intersect on the full-image mask (same pixels as the pink overlay).
     width_px, center_pt, end_a, end_b, _idx = max_width_perpendicular_to_axis(
-        local_mask,
-        path_loc,
-        c_loc,
+        mask_bool,
+        path_global,
+        np.asarray(c_global, dtype=np.float64),
         u_axis,
         n_samples=max(32, int(pca_width_samples)),
     )
 
-    c_global = _to_global_pt((float(c_loc[0]), float(c_loc[1])), ox, oy)
-    u_tuple = (float(u_axis[0]), float(u_axis[1]))
-
     analysis = WaterCutAnalysis(
-        centerline_path=_to_global(path_loc, ox, oy),
+        centerline_path=path_global,
         water_cut_width_px=float(width_px),
         water_cut_width_mm=float("nan"),
-        width_center=_to_global_pt(center_pt, ox, oy),
-        width_end_a=_to_global_pt(end_a, ox, oy),
-        width_end_b=_to_global_pt(end_b, ox, oy),
+        width_center=center_pt,
+        width_end_a=end_a,
+        width_end_b=end_b,
         pca_centroid=c_global,
         pca_axis=u_tuple,
     )
@@ -178,6 +179,26 @@ def pca_axis_segment_in_box(
     )
 
 
+def _paint_line_inside_mask(
+    image_bgr: np.ndarray,
+    p0: tuple[int, int],
+    p1: tuple[int, int],
+    color: tuple[int, int, int],
+    thickness: int,
+    clip_mask: np.ndarray | None,
+) -> None:
+    """Draw a line; if ``clip_mask`` is set, only paint pixels inside the mask."""
+    if clip_mask is None or not np.any(clip_mask):
+        cv2.line(image_bgr, p0, p1, color, thickness, cv2.LINE_AA)
+        return
+    layer = np.zeros(image_bgr.shape[:2], dtype=np.uint8)
+    cv2.line(layer, p0, p1, 255, thickness, cv2.LINE_AA)
+    keep = (layer > 0) & clip_mask.astype(bool)
+    if not np.any(keep):
+        return
+    image_bgr[keep] = color
+
+
 def draw_water_cut_overlay(
     image_bgr: np.ndarray,
     analysis: WaterCutAnalysis,
@@ -192,28 +213,64 @@ def draw_water_cut_overlay(
 
     When ``width_line_only`` is True, only the max-width measurement chord is drawn.
     Otherwise draws the width chord, optional centerline/PCA axis, and a cutWidth label.
-    The width chord is the mask intersection (already clipped). The PCA axis is clipped
-    to ``clip_mask`` when provided, else to ``clip_box``.
+    The width chord is the mask intersection. Lines are painted only on ``clip_mask``
+    pixels when that mask is provided, so they cannot extend past the pink overlay.
     """
-    ca = tuple(int(round(v)) for v in analysis.width_center)
-    ea = tuple(int(round(v)) for v in analysis.width_end_a)
-    eb = tuple(int(round(v)) for v in analysis.width_end_b)
-    cv2.line(image_bgr, ea, eb, (0, 215, 255), 3, cv2.LINE_AA)
+    mask_bool = None if clip_mask is None else clip_mask.astype(bool)
+    ea = analysis.width_end_a
+    eb = analysis.width_end_b
+    ca = analysis.width_center
+    if mask_bool is not None and np.any(mask_bool):
+        dx = float(eb[0] - ea[0])
+        dy = float(eb[1] - ea[1])
+        if abs(dx) + abs(dy) < 1e-6:
+            dx, dy = float(analysis.pca_axis[1]), float(-analysis.pca_axis[0])
+        w_clip, a_clip, b_clip = longest_mask_intersection_along_line(
+            mask_bool,
+            float(ca[0]),
+            float(ca[1]),
+            dx,
+            dy,
+        )
+        if w_clip > 0:
+            ea, eb = a_clip, b_clip
+            ca = (0.5 * (a_clip[0] + b_clip[0]), 0.5 * (a_clip[1] + b_clip[1]))
+
+    ca_i = (int(round(ca[0])), int(round(ca[1])))
+    ea_i = (int(round(ea[0])), int(round(ea[1])))
+    eb_i = (int(round(eb[0])), int(round(eb[1])))
+    _paint_line_inside_mask(image_bgr, ea_i, eb_i, (0, 215, 255), 3, mask_bool)
 
     if width_line_only:
         return
 
     if draw_centerline and len(analysis.centerline_path) >= 2:
         pts = np.round(np.asarray(analysis.centerline_path, dtype=np.float32)).astype(np.int32)
-        cv2.polylines(image_bgr, [pts.reshape(-1, 1, 2)], False, (255, 255, 0), 2, cv2.LINE_AA)
+        if mask_bool is None:
+            cv2.polylines(image_bgr, [pts.reshape(-1, 1, 2)], False, (255, 255, 0), 2, cv2.LINE_AA)
+        else:
+            for i in range(len(pts) - 1):
+                _paint_line_inside_mask(
+                    image_bgr,
+                    (int(pts[i][0]), int(pts[i][1])),
+                    (int(pts[i + 1][0]), int(pts[i + 1][1])),
+                    (255, 255, 0),
+                    2,
+                    mask_bool,
+                )
 
-    cv2.circle(image_bgr, ca, 4, (0, 215, 255), -1, cv2.LINE_AA)
+    if mask_bool is None or (
+        0 <= ca_i[0] < image_bgr.shape[1]
+        and 0 <= ca_i[1] < image_bgr.shape[0]
+        and mask_bool[ca_i[1], ca_i[0]]
+    ):
+        cv2.circle(image_bgr, ca_i, 4, (0, 215, 255), -1, cv2.LINE_AA)
 
     if draw_pca_axis:
         p0 = p1 = None
-        if clip_mask is not None and np.any(clip_mask):
+        if mask_bool is not None and np.any(mask_bool):
             w_pca, a_pca, b_pca = longest_mask_intersection_along_line(
-                clip_mask.astype(bool),
+                mask_bool,
                 analysis.pca_centroid[0],
                 analysis.pca_centroid[1],
                 analysis.pca_axis[0],
@@ -233,14 +290,14 @@ def draw_water_cut_overlay(
             p0 = (int(round(c[0] - u[0] * span)), int(round(c[1] - u[1] * span)))
             p1 = (int(round(c[0] + u[0] * span)), int(round(c[1] + u[1] * span)))
         if p0 is not None and p1 is not None:
-            cv2.line(image_bgr, p0, p1, (20, 120, 255), 2, cv2.LINE_AA)
+            _paint_line_inside_mask(image_bgr, p0, p1, (20, 120, 255), 2, mask_bool)
 
     if np.isfinite(analysis.water_cut_width_mm) and analysis.water_cut_width_mm > 0:
         label = f"cutWidth: {analysis.water_cut_width_mm:.1f} mm"
     else:
         label = f"cutWidth: {analysis.water_cut_width_px:.1f} px"
-    tx = max(4, ca[0] + 8)
-    ty = max(24, ca[1] - 12)
+    tx = max(4, ca_i[0] + 8)
+    ty = max(24, ca_i[1] - 12)
     cv2.putText(
         image_bgr,
         label,

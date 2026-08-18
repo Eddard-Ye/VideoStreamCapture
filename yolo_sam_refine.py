@@ -432,6 +432,33 @@ def prepare_water_cut_box_prompts(
     )
 
 
+def clip_sam_to_object_interior(
+    sam_mask: np.ndarray,
+    object_mask: np.ndarray,
+    *,
+    inset_ratio: float = 0.04,
+    min_inset_px: int = 4,
+) -> np.ndarray:
+    """Keep SAM pixels inset from the object outline so the slit cannot leak to the crust."""
+    sam_bool = sam_mask.astype(bool)
+    obj_bool = object_mask.astype(bool)
+    if not np.any(sam_bool) or not np.any(obj_bool):
+        return sam_bool
+    ys, xs = np.where(obj_bool)
+    span = int(min(int(xs.max() - xs.min()), int(ys.max() - ys.min())))
+    inset = max(int(min_inset_px), int(round(float(inset_ratio) * span)))
+    core = ndimage.binary_erosion(obj_bool, structure=np.ones((3, 3), dtype=bool), iterations=inset)
+    if not np.any(core):
+        core = obj_bool
+    clipped = sam_bool & core
+    opened = ndimage.binary_opening(clipped, structure=np.ones((3, 3), dtype=bool), iterations=1)
+    if np.any(opened):
+        return opened
+    if np.any(clipped):
+        return clipped
+    return sam_bool & obj_bool
+
+
 def run_water_cut_box_sam(
     refiner: SamRefiner,
     image_bgr: np.ndarray,
@@ -455,9 +482,13 @@ def run_water_cut_box_sam(
         refiner.sam_pick,
     )
     center = (masks[best].astype(np.uint8)) * 255
-    center = sam_mask_fill_coverage(center)
+    # Close small gaps only. Filling holes turns a slit/U into the whole loaf.
+    disk3 = np.ones((3, 3), dtype=bool)
+    center_bool = ndimage.binary_closing(center > 0, structure=disk3, iterations=1)
+    center = (center_bool.astype(np.uint8)) * 255
     center = smooth_mask(center, sigma=1.2)
     center_bool = (center > 0) & object_bool
+    center_bool = clip_sam_to_object_interior(center_bool, object_bool)
 
     if not np.any(center_bool):
         return None
