@@ -9,6 +9,7 @@ from render_contour_centerline import (
     longest_mask_intersection_along_line,
     max_width_perpendicular_to_axis,
 )
+from yolo_sam_refine import clip_sam_to_object_interior
 
 
 def test_intersection_from_outside_start_matches_rect_width() -> None:
@@ -51,3 +52,15 @@ def test_max_width_uses_intersection_midpoint_inside_mask() -> None:
     for pt in (end_a, end_b, center):
         assert 9.0 <= pt[0] <= 40.0
         assert 14.0 <= pt[1] <= 35.0
+
+
+def test_clip_sam_to_object_interior_drops_crust_leak() -> None:
+    obj = np.zeros((80, 80), dtype=bool)
+    obj[10:70, 10:70] = True
+    sam = np.zeros((80, 80), dtype=bool)
+    sam[30:50, 30:50] = True
+    sam[10:70, 39:42] = True  # thin leak to the object edge
+    clipped = clip_sam_to_object_interior(sam, obj, inset_ratio=0.08, min_inset_px=6)
+    assert clipped[40, 40]
+    assert not clipped[12, 40]
+    assert not clipped[67, 40]
