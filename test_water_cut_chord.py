@@ -66,7 +66,8 @@ def test_clip_sam_to_object_interior_drops_crust_leak() -> None:
     assert not clipped[67, 40]
 
 
-def test_oriented_box_prompts_include_long_side_background() -> None:
+def test_oriented_box_prompts_bg_on_screen_horizontal_edges() -> None:
+    # Wide box: top/bottom edges are screen-horizontal (length 80).
     box = np.array([[10.0, 10.0], [90.0, 10.0], [90.0, 40.0], [10.0, 40.0]], dtype=np.float64)
     coords, labels = build_prompts_from_oriented_box(box, length_px=80.0, width_px=30.0)
     assert len(coords) == 7
@@ -74,7 +75,21 @@ def test_oriented_box_prompts_include_long_side_background() -> None:
     assert int(np.sum(labels == 0)) == 2
     bg = coords[labels == 0]
     ys = sorted(float(p[1]) for p in bg)
-    # Long-edge midpoints (y=10 and y=40) inset 10% of width (3px) -> y=13 and y=37.
-    assert abs(ys[0] - 13.0) <= 0.6
-    assert abs(ys[1] - 37.0) <= 0.6
+    # Midpoints (50,10)/(50,40) inset 10% of edge length (8px) -> y=18 and y=32.
+    assert abs(ys[0] - 18.0) <= 0.6
+    assert abs(ys[1] - 32.0) <= 0.6
     assert abs(float(np.mean(bg[:, 0])) - 50.0) <= 0.6
+
+
+def test_oriented_box_prompts_bg_uses_horizontal_not_long_axis() -> None:
+    # Tall box: long axis is vertical, but screen-horizontal edges are still top/bottom.
+    box = np.array([[10.0, 10.0], [40.0, 10.0], [40.0, 90.0], [10.0, 90.0]], dtype=np.float64)
+    coords, labels = build_prompts_from_oriented_box(box, length_px=80.0, width_px=30.0)
+    bg = coords[labels == 0]
+    ys = sorted(float(p[1]) for p in bg)
+    # Midpoints (25,10)/(25,90) inset 10% of edge length (3px) -> y=13 and y=87.
+    assert abs(ys[0] - 13.0) <= 0.6
+    assert abs(ys[1] - 87.0) <= 0.6
+    assert abs(float(np.mean(bg[:, 0])) - 25.0) <= 0.6
+    # Must not fall on the vertical (long) sides.
+    assert all(abs(float(p[0]) - 25.0) <= 0.6 for p in bg)

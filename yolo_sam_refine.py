@@ -350,6 +350,50 @@ def _oriented_box_axes(box: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndar
     return center, edge_infos[0][1], edge_infos[-1][1]
 
 
+def _background_prompts_screen_horizontal(
+    box: np.ndarray,
+    center: np.ndarray,
+    *,
+    bg_inset_ratio: float = 0.10,
+) -> np.ndarray:
+    """Background prompts on edges most parallel to the screen X axis.
+
+    Pick the opposite-edge pair whose direction is closest to horizontal
+    (``|edge_dir · (1, 0)|`` largest). Use each edge midpoint, then inset toward
+    the box center by ``bg_inset_ratio`` times that edge's length.
+    """
+    box = np.asarray(box, dtype=np.float64).reshape(4, 2)
+
+    def edge_horizontal_score(index: int) -> float:
+        vec = box[(index + 1) % 4] - box[index]
+        length = float(np.linalg.norm(vec))
+        if length < 1e-6:
+            return -1.0
+        return abs(float(vec[0] / length))
+
+    # Opposite edges share orientation: pair 0↔2 vs pair 1↔3.
+    pair = 0 if edge_horizontal_score(0) >= edge_horizontal_score(1) else 1
+    bg_points: list[np.ndarray] = []
+    for index in (pair, pair + 2):
+        start = box[index]
+        end = box[(index + 1) % 4]
+        edge_vec = end - start
+        edge_len = float(np.linalg.norm(edge_vec))
+        if edge_len < 1e-6:
+            continue
+        mid = 0.5 * (start + end)
+        inward = center - mid
+        inward_norm = float(np.linalg.norm(inward))
+        if inward_norm < 1e-6:
+            continue
+        inset = float(bg_inset_ratio) * edge_len
+        bg_points.append(mid + inward * (inset / inward_norm))
+
+    if len(bg_points) != 2:
+        raise RuntimeError("Oriented box has no usable screen-horizontal edges for background prompts.")
+    return np.asarray(bg_points, dtype=np.float32)
+
+
 def build_prompts_from_oriented_box(
     box: np.ndarray,
     length_px: float,
@@ -363,8 +407,9 @@ def build_prompts_from_oriented_box(
     Foreground: box center plus four points offset along the long and short axes
     (``extent_ratio`` times the corresponding side).
 
-    Background: midpoints of the two long sides, then inset along the short axis
-    by ``bg_inset_ratio`` times the box width (toward the rectangle interior).
+    Background: midpoints of the two edges most parallel to the screen horizontal
+    axis (image X), inset toward the interior by ``bg_inset_ratio`` times that
+    edge's length.
     """
     if length_px < 1e-3 or width_px < 1e-3:
         raise RuntimeError("Invalid oriented box dimensions for prompt generation.")
@@ -372,7 +417,6 @@ def build_prompts_from_oriented_box(
     center, long_dir, short_dir = _oriented_box_axes(box)
     long_offset = float(extent_ratio) * float(length_px)
     short_offset = float(extent_ratio) * float(width_px)
-    bg_from_center = (0.5 - float(bg_inset_ratio)) * float(width_px)
 
     fg_points = np.array(
         [
@@ -384,12 +428,10 @@ def build_prompts_from_oriented_box(
         ],
         dtype=np.float32,
     )
-    bg_points = np.array(
-        [
-            center + short_dir * bg_from_center,
-            center - short_dir * bg_from_center,
-        ],
-        dtype=np.float32,
+    bg_points = _background_prompts_screen_horizontal(
+        box,
+        center,
+        bg_inset_ratio=bg_inset_ratio,
     )
     coords = np.vstack([fg_points, bg_points])
     labels = np.concatenate(
