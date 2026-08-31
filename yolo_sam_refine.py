@@ -521,6 +521,19 @@ def clip_sam_to_object_interior(
     return sam_bool & obj_bool
 
 
+def keep_largest_connected_component(mask: np.ndarray) -> np.ndarray:
+    """Keep only the largest 8-connected component; drop small fragments."""
+    m = mask.astype(bool)
+    if not np.any(m):
+        return m
+    labels, n = ndimage.label(m, structure=np.ones((3, 3), dtype=int))
+    if n <= 1:
+        return m
+    counts = np.bincount(labels.ravel())
+    counts[0] = 0
+    return labels == int(np.argmax(counts))
+
+
 def run_water_cut_box_sam(
     refiner: SamRefiner,
     image_bgr: np.ndarray,
@@ -551,6 +564,8 @@ def run_water_cut_box_sam(
     center = smooth_mask(center, sigma=1.2)
     center_bool = (center > 0) & object_bool
     center_bool = clip_sam_to_object_interior(center_bool, object_bool)
+    # Water-cut overlay/analysis use one slit body; drop stray corner blobs.
+    center_bool = keep_largest_connected_component(center_bool)
 
     if not np.any(center_bool):
         return None
