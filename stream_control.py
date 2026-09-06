@@ -54,9 +54,15 @@ def main() -> int:
     parser.add_argument("--weight", default="", help="For capture, weight text (e.g. 14.2g).")
     parser.add_argument(
         "--height-calc-mode",
-        choices=("peak", "average"),
+        choices=("peak", "average", "percentile"),
         default="peak",
-        help="For capture, peak or average object height (default: peak).",
+        help="For capture, peak / average / percentile object height (default: peak).",
+    )
+    parser.add_argument(
+        "--height-percentile",
+        type=float,
+        default=50.0,
+        help="For capture with percentile mode, height percentile 0-100 (default: 50).",
     )
     parser.add_argument(
         "--height-scale",
@@ -107,6 +113,7 @@ def main() -> int:
                 "weight": args.weight,
                 "water_cut": bool(args.water_cut),
                 "height_calc_mode": args.height_calc_mode,
+                "height_percentile": float(args.height_percentile),
                 "height_scale": float(args.height_scale),
                 "height_offset": float(args.height_offset),
                 "lw_height_mm": float(args.lw_height_mm),

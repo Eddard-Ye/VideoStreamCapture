@@ -11,6 +11,8 @@ from camera_intrinsics import RgbIntrinsics
 from stream_common import save_capture_jpeg
 from color_viewer import RoiRect, SegInstance
 from object_measure import (
+    HEIGHT_CALC_MODE_PERCENTILE,
+    apply_percentile_height_to_instances,
     mean_depth_points_in_mask,
     measure_mask_mm,
     oriented_box_from_mask,
@@ -18,6 +20,7 @@ from object_measure import (
     peak_height_points_in_mask,
     plane_depth_from_obbox_samples,
     resolve_capture_height_mm,
+    normalize_height_calc_mode,
 )
 from sam_centerline import analyze_water_cut
 from stream_overlay import (
@@ -102,6 +105,8 @@ def attach_orbbec_instance_metrics(
             instance.peak_height_points = []
             instance.peak_height_mm = float("nan")
             instance.average_height_points = []
+            instance.percentile_height_mm = float("nan")
+            instance.percentile_height_points = []
             continue
 
         instance.box_pts = measured.box_pts
@@ -232,6 +237,19 @@ def process_orbbec_capture_request(
                 intrinsics=intrinsics,
             )
 
+        if normalize_height_calc_mode(request.height_calc_mode) == HEIGHT_CALC_MODE_PERCENTILE:
+            apply_percentile_height_to_instances(
+                instances,
+                depth_mm,
+                request.height_percentile,
+            )
+            if labels is not instances:
+                apply_percentile_height_to_instances(
+                    labels,
+                    depth_mm,
+                    request.height_percentile,
+                )
+
         record_info = build_capture_record_info(
             labels,
             temperature=request.temperature,
@@ -241,6 +259,7 @@ def process_orbbec_capture_request(
             height_calc_mode=request.height_calc_mode,
             height_scale=request.height_scale,
             height_offset=request.height_offset,
+            height_percentile=request.height_percentile,
         )
         frame = compose_record_frame(
             image_bgr,
@@ -254,6 +273,7 @@ def process_orbbec_capture_request(
             height_calc_mode=request.height_calc_mode,
             height_scale=request.height_scale,
             height_offset=request.height_offset,
+            height_percentile=request.height_percentile,
         )
         output_path = save_capture_jpeg(frame, output_dir, request.name, jpeg_quality)
         file_name = os.path.basename(output_path)
@@ -273,6 +293,7 @@ def process_orbbec_capture_request(
                 calc_mode=request.height_calc_mode,
                 height_scale=request.height_scale,
                 height_offset=request.height_offset,
+                height_percentile=request.height_percentile,
             )
         )
         return {
