@@ -507,35 +507,135 @@ def format_lw_label(
 
 HEIGHT_CALC_MODE_PEAK = "peak"
 HEIGHT_CALC_MODE_AVERAGE = "average"
+HEIGHT_CALC_MODE_PERCENTILE = "percentile"
 DEFAULT_HEIGHT_CALC_MODE = HEIGHT_CALC_MODE_PEAK
 DEFAULT_HEIGHT_SCALE = 1.0
 DEFAULT_HEIGHT_OFFSET = 0.0
+DEFAULT_HEIGHT_PERCENTILE = 50.0
 
 
 def normalize_height_calc_mode(value: object | None) -> str:
-    """Return peak|average; unknown / empty values default to peak."""
+    """Return peak|average|percentile; unknown / empty values default to peak."""
     if value is None:
         return DEFAULT_HEIGHT_CALC_MODE
     text = str(value).strip().lower()
     if text == HEIGHT_CALC_MODE_AVERAGE:
         return HEIGHT_CALC_MODE_AVERAGE
+    if text in (HEIGHT_CALC_MODE_PERCENTILE, "pct", "p"):
+        return HEIGHT_CALC_MODE_PERCENTILE
+    if text == HEIGHT_CALC_MODE_PEAK:
+        return HEIGHT_CALC_MODE_PEAK
     return DEFAULT_HEIGHT_CALC_MODE
+
+
+def normalize_height_percentile(value: object | None) -> float:
+    """Clamp percentile to [0, 100]; invalid / missing -> 50."""
+    if value is None or value == "":
+        return DEFAULT_HEIGHT_PERCENTILE
+    try:
+        p = float(value)
+    except (TypeError, ValueError):
+        return DEFAULT_HEIGHT_PERCENTILE
+    if not np.isfinite(p):
+        return DEFAULT_HEIGHT_PERCENTILE
+    return float(min(100.0, max(0.0, p)))
+
+
+def percentile_height_in_mask(
+    mask: np.ndarray,
+    depth_mm: np.ndarray,
+    z_plane_ref_mm: float,
+    percentile: float,
+    *,
+    height_tolerance_mm: float = 0.5,
+) -> tuple[list[tuple[int, int]], float]:
+    """Percentile of physical heights in mask (ascending).
+
+    ``height = z_plane_ref - depth``. Percentile 0 = lowest, 50 = median,
+    100 = highest (same notion as peak).
+    """
+    if not np.any(mask) or not np.isfinite(z_plane_ref_mm) or z_plane_ref_mm <= 0:
+        return [], float("nan")
+
+    p = normalize_height_percentile(percentile)
+    mask_bool = mask.astype(bool)
+    depths = depth_mm.astype(np.float32)
+    valid = mask_bool & np.isfinite(depths) & (depths > 0)
+    if not np.any(valid):
+        return [], float("nan")
+
+    heights = np.maximum(0.0, float(z_plane_ref_mm) - depths)
+    valid_heights = heights[valid]
+    target = float(np.percentile(valid_heights, p))
+    abs_diff = np.abs(heights - target)
+    abs_diff = np.where(valid, abs_diff, np.inf)
+    # Prefer pixels within tolerance of the percentile height; else closest.
+    near = valid & (abs_diff <= float(height_tolerance_mm))
+    if np.any(near):
+        ys, xs = np.where(near)
+    else:
+        min_diff = float(np.min(abs_diff))
+        if not np.isfinite(min_diff):
+            return [], float(target)
+        ys, xs = np.where(valid & (abs_diff == min_diff))
+    points = [(int(x), int(y)) for x, y in zip(xs.tolist(), ys.tolist())]
+    return points, float(target)
+
+
+def apply_percentile_height_to_instances(
+    instances: list,
+    depth_mm: np.ndarray,
+    percentile: float,
+) -> None:
+    """Fill ``percentile_height_mm`` / points on each instance for the given percentile."""
+    p = normalize_height_percentile(percentile)
+    for instance in instances:
+        z_plane = getattr(instance, "z_plane_ref_mm", float("nan"))
+        mask = getattr(instance, "mask", None)
+        if mask is None or not np.any(mask) or not np.isfinite(z_plane) or z_plane <= 0:
+            instance.percentile_height_mm = float("nan")
+            instance.percentile_height_points = []
+            instance.height_percentile = p
+            continue
+        points, height_mm = percentile_height_in_mask(mask, depth_mm, float(z_plane), p)
+        instance.percentile_height_mm = height_mm
+        instance.percentile_height_points = points
+        instance.height_percentile = p
 
 
 def instance_height_mm(
     instance,
     *,
     calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
+    height_percentile: float | None = None,
 ) -> float:
     """Raw object height in mm by calc mode (peak preferred by default)."""
     peak = getattr(instance, "peak_height_mm", float("nan"))
     body = getattr(instance, "height_mm", float("nan"))
+    pct = getattr(instance, "percentile_height_mm", float("nan"))
     mode = normalize_height_calc_mode(calc_mode)
     if mode == HEIGHT_CALC_MODE_AVERAGE:
         if np.isfinite(body):
             return float(body)
         if np.isfinite(peak):
             return float(peak)
+        return float("nan")
+    if mode == HEIGHT_CALC_MODE_PERCENTILE:
+        # Prefer precomputed percentile height on the instance.
+        if np.isfinite(pct):
+            return float(pct)
+        # Fallback: if caller only set peak/average, approximate 100% -> peak.
+        p = normalize_height_percentile(
+            height_percentile
+            if height_percentile is not None
+            else getattr(instance, "height_percentile", DEFAULT_HEIGHT_PERCENTILE)
+        )
+        if p >= 100.0 - 1e-9 and np.isfinite(peak):
+            return float(peak)
+        if np.isfinite(peak):
+            return float(peak)
+        if np.isfinite(body):
+            return float(body)
         return float("nan")
     if np.isfinite(peak):
         return float(peak)
@@ -564,9 +664,14 @@ def resolve_capture_height_mm(
     calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float | None = None,
 ) -> float:
-    """Select peak/average raw height, then apply scale/offset for capture API."""
-    raw = instance_height_mm(instance, calc_mode=calc_mode)
+    """Select peak/average/percentile raw height, then apply scale/offset for capture API."""
+    raw = instance_height_mm(
+        instance,
+        calc_mode=calc_mode,
+        height_percentile=height_percentile,
+    )
     return apply_height_transform(
         raw,
         height_scale=height_scale,
@@ -580,12 +685,14 @@ def format_instance_height_display(
     calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float | None = None,
 ) -> str:
     height_mm = resolve_capture_height_mm(
         instance,
         calc_mode=calc_mode,
         height_scale=height_scale,
         height_offset=height_offset,
+        height_percentile=height_percentile,
     )
     if np.isfinite(height_mm):
         return f"{height_mm:.1f}mm"

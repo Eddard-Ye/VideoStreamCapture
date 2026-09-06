@@ -24,6 +24,7 @@ class CaptureRequest:
     height_calc_mode: str = "peak"
     height_scale: float = 1.0
     height_offset: float = 0.0
+    height_percentile: float = 50.0
     # Height above table plane used only for LxW depth: z_lw = plane - lw_height_mm.
     # Does not affect the displayed/API object height H.
     lw_height_mm: float = 0.0
@@ -271,7 +272,18 @@ def make_handler(hub: StreamHub, capture_output_dir: str):
                     height_calc_mode = "peak"
                 else:
                     mode_text = str(mode_raw).strip().lower()
-                    height_calc_mode = "average" if mode_text == "average" else "peak"
+                    if mode_text == "average":
+                        height_calc_mode = "average"
+                    elif mode_text in ("percentile", "pct", "p"):
+                        height_calc_mode = "percentile"
+                    else:
+                        height_calc_mode = "peak"
+
+                height_percentile = _float_field("height_percentile", 50.0)
+                if height_percentile < 0.0:
+                    height_percentile = 0.0
+                elif height_percentile > 100.0:
+                    height_percentile = 100.0
 
                 request = CaptureRequest(
                     name=name.strip(),
@@ -282,6 +294,7 @@ def make_handler(hub: StreamHub, capture_output_dir: str):
                     height_calc_mode=height_calc_mode,
                     height_scale=_float_field("height_scale", 1.0),
                     height_offset=_float_field("height_offset", 0.0),
+                    height_percentile=height_percentile,
                     lw_height_mm=_float_field("lw_height_mm", 0.0),
                 )
                 if hub.submit_capture(request) is None:

@@ -111,9 +111,14 @@ python capture_2d.py --gui
   "height": "10.0mm",
   "temperature": "27.3",
   "weight": "14.2g",
-  "water_cut": true
+  "water_cut": true,
+  "height_calc_mode": "percentile",
+  "height_percentile": 50
 }
 ```
+
+`height_calc_mode` 可选 `peak`（默认）/ `average` / `percentile`。  
+`percentile` 时传 `height_percentile`（0–100）：对 mask 内物理高度从小到大取百分位，100 为最高点，50 为中位数。
 
 响应含 `fileName`、`length_mm`、`width_mm`、`water_cut_mm` 等字段。文件保存在 `output/captures/`。
 

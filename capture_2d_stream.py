@@ -132,6 +132,7 @@ def process_capture_request(
             height_calc_mode=request.height_calc_mode,
             height_scale=request.height_scale,
             height_offset=request.height_offset,
+            height_percentile=request.height_percentile,
         )
         frame = compose_record_frame(
             image_bgr,
@@ -143,6 +144,7 @@ def process_capture_request(
             height_calc_mode=request.height_calc_mode,
             height_scale=request.height_scale,
             height_offset=request.height_offset,
+            height_percentile=request.height_percentile,
         )
         output_path = save_capture_jpeg(frame, output_dir, request.name, jpeg_quality)
         file_name = os.path.basename(output_path)
@@ -162,6 +164,7 @@ def process_capture_request(
                 calc_mode=request.height_calc_mode,
                 height_scale=request.height_scale,
                 height_offset=request.height_offset,
+                height_percentile=request.height_percentile,
             )
         )
         return {

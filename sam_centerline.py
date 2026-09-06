@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 import cv2
@@ -16,7 +17,7 @@ from render_contour_centerline import (
     max_width_perpendicular_to_axis,
 )
 from extract_center_contour import mask_to_contours_xy
-from object_measure import depth_p90_for_mask, pixel_edge_len_mm
+from object_measure import depth_p90_for_mask, pixel_edge_len_mm, sample_depth_at
 
 
 @dataclass
@@ -86,6 +87,142 @@ def water_cut_width_mm(
     return pixel_edge_len_mm(p0, p1, z_mm, fx, fy)
 
 
+def _sample_height_along_ray(
+    depth_mm: np.ndarray,
+    origin: tuple[float, float],
+    end: tuple[float, float],
+    *,
+    step_px: float = 1.0,
+    sample_radius: int = 2,
+) -> tuple[list[tuple[float, float]], list[float]]:
+    """Walk origin→end; height = -depth (higher surface → smaller camera depth)."""
+    ox, oy = float(origin[0]), float(origin[1])
+    ex, ey = float(end[0]), float(end[1])
+    dx, dy = ex - ox, ey - oy
+    length = math.hypot(dx, dy)
+    if length < 1e-6:
+        z = sample_depth_at(depth_mm, int(round(ox)), int(round(oy)), radius=sample_radius)
+        h = float("-inf") if (not np.isfinite(z) or z <= 0) else float(-z)
+        return [(ox, oy)], [h]
+    ux, uy = dx / length, dy / length
+    n = max(1, int(math.floor(length / max(step_px, 1e-3))))
+    pts: list[tuple[float, float]] = []
+    heights: list[float] = []
+    for i in range(n + 1):
+        t = min(length, i * step_px) if i < n else length
+        x, y = ox + t * ux, oy + t * uy
+        z = sample_depth_at(depth_mm, int(round(x)), int(round(y)), radius=sample_radius)
+        if not np.isfinite(z) or z <= 0:
+            h = float("-inf")
+        else:
+            h = float(-z)
+        pts.append((x, y))
+        heights.append(h)
+    return pts, heights
+
+
+def _trim_one_end_by_depth_ridge(
+    depth_mm: np.ndarray,
+    center: tuple[float, float],
+    end: tuple[float, float],
+    *,
+    min_rise_mm: float = 0.8,
+    flat_eps_mm: float = 0.4,
+    drop_eps_mm: float = 0.3,
+    flat_run: int = 2,
+    step_px: float = 1.0,
+    sample_radius: int = 2,
+) -> tuple[float, float]:
+    """
+    From chord center toward ``end``, stop at the first crust-lip peak.
+
+    After height has risen by ``min_rise_mm`` relative to the center, subsequent
+    flat (within ``flat_eps_mm``) or dropping samples are trimmed; the endpoint
+    stays at the peak. If no clear ridge is found, ``end`` is unchanged.
+    """
+    pts, heights = _sample_height_along_ray(
+        depth_mm,
+        center,
+        end,
+        step_px=step_px,
+        sample_radius=sample_radius,
+    )
+    if len(pts) < 3:
+        return end
+
+    h0 = heights[0]
+    if not np.isfinite(h0) or h0 == float("-inf"):
+        return end
+
+    best_i = 0
+    best_h = h0
+    for i in range(1, len(pts)):
+        h = heights[i]
+        if not np.isfinite(h) or h == float("-inf"):
+            continue
+        if h > best_h:
+            best_h = h
+            best_i = i
+        if best_h < h0 + min_rise_mm:
+            continue
+        # Past a clear peak: flat plateau or drop → keep peak, drop the rest.
+        if i > best_i:
+            if h <= best_h - drop_eps_mm:
+                break
+            if abs(h - best_h) <= flat_eps_mm and (i - best_i) >= flat_run:
+                break
+
+    if best_h < h0 + min_rise_mm or best_i <= 0:
+        return end
+    return pts[best_i]
+
+
+def trim_chord_ends_by_depth_ridge(
+    depth_mm: np.ndarray,
+    center: tuple[float, float],
+    end_a: tuple[float, float],
+    end_b: tuple[float, float],
+    *,
+    min_rise_mm: float = 0.8,
+    flat_eps_mm: float = 0.4,
+    drop_eps_mm: float = 0.3,
+    flat_run: int = 2,
+    step_px: float = 1.0,
+    sample_radius: int = 2,
+) -> tuple[tuple[float, float], tuple[float, float], tuple[float, float], float]:
+    """
+    Trim mask chord endpoints using depth height ridges along the normal.
+
+    Returns ``(new_center, new_a, new_b, width_px)``.
+    """
+    a = _trim_one_end_by_depth_ridge(
+        depth_mm,
+        center,
+        end_a,
+        min_rise_mm=min_rise_mm,
+        flat_eps_mm=flat_eps_mm,
+        drop_eps_mm=drop_eps_mm,
+        flat_run=flat_run,
+        step_px=step_px,
+        sample_radius=sample_radius,
+    )
+    b = _trim_one_end_by_depth_ridge(
+        depth_mm,
+        center,
+        end_b,
+        min_rise_mm=min_rise_mm,
+        flat_eps_mm=flat_eps_mm,
+        drop_eps_mm=drop_eps_mm,
+        flat_run=flat_run,
+        step_px=step_px,
+        sample_radius=sample_radius,
+    )
+    cx = 0.5 * (a[0] + b[0])
+    cy = 0.5 * (a[1] + b[1])
+    width = math.hypot(b[0] - a[0], b[1] - a[1])
+    return (cx, cy), a, b, float(width)
+
+
 def analyze_water_cut(
     mask: np.ndarray,
     *,
@@ -98,6 +235,7 @@ def analyze_water_cut(
     """
     Compute Voronoi centerline inside mask and max (normal ∩ mask) chord (水切宽度).
     Coordinates are in full-image pixel space. The width segment stays inside the mask.
+    When ``depth_mm`` is set, chord ends are trimmed to crust-lip depth ridges.
     """
     mask_bool = mask.astype(bool)
     if not np.any(mask_bool):
@@ -144,6 +282,14 @@ def analyze_water_cut(
         u_axis,
         n_samples=max(32, int(pca_width_samples)),
     )
+
+    if depth_mm is not None and np.any(np.isfinite(depth_mm)):
+        center_pt, end_a, end_b, width_px = trim_chord_ends_by_depth_ridge(
+            depth_mm,
+            center_pt,
+            end_a,
+            end_b,
+        )
 
     analysis = WaterCutAnalysis(
         centerline_path=path_global,
@@ -213,28 +359,13 @@ def draw_water_cut_overlay(
 
     When ``width_line_only`` is True, only the max-width measurement chord is drawn.
     Otherwise draws the width chord, optional centerline/PCA axis, and a cutWidth label.
-    The width chord is the mask intersection. Lines are painted only on ``clip_mask``
-    pixels when that mask is provided, so they cannot extend past the pink overlay.
+    The width chord uses analysis endpoints (may already be depth-ridge trimmed).
+    Lines are painted only on ``clip_mask`` pixels when that mask is provided.
     """
     mask_bool = None if clip_mask is None else clip_mask.astype(bool)
     ea = analysis.width_end_a
     eb = analysis.width_end_b
     ca = analysis.width_center
-    if mask_bool is not None and np.any(mask_bool):
-        dx = float(eb[0] - ea[0])
-        dy = float(eb[1] - ea[1])
-        if abs(dx) + abs(dy) < 1e-6:
-            dx, dy = float(analysis.pca_axis[1]), float(-analysis.pca_axis[0])
-        w_clip, a_clip, b_clip = longest_mask_intersection_along_line(
-            mask_bool,
-            float(ca[0]),
-            float(ca[1]),
-            dx,
-            dy,
-        )
-        if w_clip > 0:
-            ea, eb = a_clip, b_clip
-            ca = (0.5 * (a_clip[0] + b_clip[0]), 0.5 * (a_clip[1] + b_clip[1]))
 
     ca_i = (int(round(ca[0])), int(round(ca[1])))
     ea_i = (int(round(ea[0])), int(round(ea[1])))

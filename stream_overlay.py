@@ -14,6 +14,7 @@ from color_viewer import RoiRect, SegInstance
 from object_measure import (
     DEFAULT_HEIGHT_CALC_MODE,
     DEFAULT_HEIGHT_OFFSET,
+    DEFAULT_HEIGHT_PERCENTILE,
     DEFAULT_HEIGHT_SCALE,
     format_height_mm_stream_label,
     format_instance_height_display,
@@ -78,12 +79,14 @@ def format_capture_lw_label(
     calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
 ) -> str:
     height_mm = resolve_capture_height_mm(
         instance,
         calc_mode=calc_mode,
         height_scale=height_scale,
         height_offset=height_offset,
+        height_percentile=height_percentile,
     )
     metric = format_lxwxh_stream_label(
         instance.length_mm,
@@ -114,6 +117,7 @@ def build_capture_record_info(
     height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
 ) -> CaptureRecordInfo:
     primary = instances[0] if instances else None
     lw_text = (
@@ -122,6 +126,7 @@ def build_capture_record_info(
             calc_mode=height_calc_mode,
             height_scale=height_scale,
             height_offset=height_offset,
+            height_percentile=height_percentile,
         )
         if primary is not None
         else "LxWxH: ---"
@@ -138,6 +143,7 @@ def build_capture_record_info(
                 calc_mode=height_calc_mode,
                 height_scale=height_scale,
                 height_offset=height_offset,
+                height_percentile=height_percentile,
             )
             if primary is not None
             else "---"
@@ -280,6 +286,7 @@ def _format_lwh_stream_label(
     calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
 ) -> str | None:
     if split_height_labels:
         return format_lxw_stream_label(
@@ -293,6 +300,7 @@ def _format_lwh_stream_label(
         calc_mode=calc_mode,
         height_scale=height_scale,
         height_offset=height_offset,
+        height_percentile=height_percentile,
     )
     return format_lxwxh_stream_label(
         instance.length_mm,
@@ -469,6 +477,7 @@ def _draw_instance_labels(
     height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
 ) -> None:
     label_scale = label_size_factor * max(0.75, min(1.2, frame.shape[1] / 550.0))
     line_height = max(24, int(round(34 * label_scale)))
@@ -486,6 +495,7 @@ def _draw_instance_labels(
                     calc_mode=height_calc_mode,
                     height_scale=height_scale,
                     height_offset=height_offset,
+                    height_percentile=height_percentile,
                 )
                 if metric is not None:
                     text = f"{line_index}: {metric}"
@@ -593,6 +603,7 @@ def compose_record_frame(
     height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
 ) -> np.ndarray:
     frame = compose_stream_frame(
         image_bgr,
@@ -605,6 +616,7 @@ def compose_record_frame(
         height_calc_mode=height_calc_mode,
         height_scale=height_scale,
         height_offset=height_offset,
+        height_percentile=height_percentile,
     )
     _draw_record_info_block(
         frame,
@@ -630,6 +642,7 @@ def compose_stream_frame(
     height_calc_mode: str = DEFAULT_HEIGHT_CALC_MODE,
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
+    height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
 ) -> np.ndarray:
     frame = image_bgr.copy()
     labels = label_instances if label_instances is not None else instances
@@ -652,6 +665,7 @@ def compose_stream_frame(
         height_calc_mode=height_calc_mode,
         height_scale=height_scale,
         height_offset=height_offset,
+        height_percentile=height_percentile,
     )
 
     if water_cut_overlays:

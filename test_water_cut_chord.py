@@ -9,7 +9,11 @@ from render_contour_centerline import (
     longest_mask_intersection_along_line,
     max_width_perpendicular_to_axis,
 )
-from yolo_sam_refine import build_prompts_from_oriented_box, clip_sam_to_object_interior
+from yolo_sam_refine import (
+    build_prompts_from_oriented_box,
+    clip_sam_to_object_interior,
+    keep_largest_connected_component,
+)
 
 
 def test_intersection_from_outside_start_matches_rect_width() -> None:
@@ -64,6 +68,51 @@ def test_clip_sam_to_object_interior_drops_crust_leak() -> None:
     assert clipped[40, 40]
     assert not clipped[12, 40]
     assert not clipped[67, 40]
+
+
+def test_keep_largest_connected_component_drops_small_blob() -> None:
+    mask = np.zeros((40, 80), dtype=bool)
+    mask[10:30, 30:70] = True  # large
+    mask[5:10, 5:12] = True  # small corner
+    kept = keep_largest_connected_component(mask)
+    assert kept[20, 50]
+    assert not kept[7, 8]
+    assert int(kept.sum()) == int(mask[10:30, 30:70].sum())
+
+
+def test_trim_chord_ends_by_depth_ridge_cuts_lip_plateau() -> None:
+    from sam_centerline import trim_chord_ends_by_depth_ridge
+
+    # Vertical chord through x=40. Trough in the middle, raised lips, then flat crust.
+    # depth smaller => physically higher. Center deep (510), lip peak (500), outer flat (500.2).
+    depth = np.full((80, 80), 520.0, dtype=np.float32)
+    depth[30:50, 35:45] = 510.0  # trough
+    depth[22:30, 35:45] = 500.0  # upper lip peak
+    depth[10:22, 35:45] = 500.2  # outer plateau (slightly lower height)
+    depth[50:58, 35:45] = 500.0  # lower lip peak
+    depth[58:70, 35:45] = 500.2  # outer plateau
+
+    center = (40.0, 40.0)
+    end_a = (40.0, 12.0)
+    end_b = (40.0, 68.0)
+    new_c, a, b, width = trim_chord_ends_by_depth_ridge(
+        depth,
+        center,
+        end_a,
+        end_b,
+        min_rise_mm=0.8,
+        flat_eps_mm=0.4,
+        drop_eps_mm=0.3,
+        flat_run=2,
+        sample_radius=0,
+    )
+    ys = sorted((a[1], b[1]))
+    assert ys[0] >= 20.0
+    assert ys[0] <= 31.0
+    assert ys[1] >= 49.0
+    assert ys[1] <= 60.0
+    assert width < abs(end_b[1] - end_a[1]) - 5.0
+    assert abs(new_c[0] - 40.0) <= 1.0
 
 
 def test_oriented_box_prompts_bg_on_screen_horizontal_edges() -> None:
