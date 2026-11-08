@@ -17,6 +17,7 @@ from stream_common import (
 )
 from color_viewer import RoiRect, YoloSegmenter, keep_top_confidence_instances, resolve_roi
 from orbbec_color import close_rgbd_camera, list_devices, open_rgbd_camera
+from object_measure import measure_lw_mm_at_average_height
 from orbbec_metrics import (
     attach_orbbec_instance_metrics,
     compute_orbbec_water_cut_overlays,
@@ -358,6 +359,17 @@ def run_stream(args: argparse.Namespace) -> int:
                 hub.computing_water_cut = False
                 status_text = None
 
+            # This frame's average height only. Live overlay; capture keeps lw_height_mm.
+            average_lw_mm = [
+                measure_lw_mm_at_average_height(
+                    instance.mask,
+                    instance.z_plane_ref_mm,
+                    instance.height_mm,
+                    intrinsics.fx,
+                    intrinsics.fy,
+                )
+                for instance in raw_instances
+            ]
             frame = compose_stream_frame(
                 image,
                 display_instances,
@@ -366,6 +378,7 @@ def run_stream(args: argparse.Namespace) -> int:
                 label_size_factor=ORBBEC_LABEL_SIZE_FACTOR,
                 split_height_labels=True,
                 draw_lw_label=False,
+                average_lw_mm=average_lw_mm,
             )
             jpeg = encode_jpeg(frame, args.stream_width, args.jpeg_quality)
 
