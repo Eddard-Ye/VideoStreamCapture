@@ -146,3 +146,19 @@ def test_stream_lxwxh_label_uses_capture_height_transform() -> None:
         height_offset=1.0,
     )
     assert label == expected
+
+
+def test_measure_lw_mm_at_average_height_uses_plane_minus_height() -> None:
+    from object_measure import format_average_lw_stream_label, measure_lw_mm_at_average_height
+
+    mask = np.zeros((300, 400), dtype=bool)
+    mask[40:140, 50:250] = True  # 100 x 200 px
+    measured = measure_lw_mm_at_average_height(mask, 500.0, 50.0, 1000.0, 1000.0)
+    assert measured is not None
+    length_mm, width_mm = measured
+    # z = 500 - 50 = 450; mm = px * z / f
+    assert abs(length_mm - 90.0) < 1.0
+    assert abs(width_mm - 45.0) < 1.0
+    assert measure_lw_mm_at_average_height(mask, 500.0, float("nan"), 1000.0, 1000.0) is None
+    assert measure_lw_mm_at_average_height(mask, 500.0, 500.0, 1000.0, 1000.0) is None
+    assert format_average_lw_stream_label(12.34, 4.56) == "average LxW: 12.3 mm x 4.6mm"

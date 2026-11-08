@@ -16,6 +16,7 @@ from object_measure import (
     DEFAULT_HEIGHT_OFFSET,
     DEFAULT_HEIGHT_PERCENTILE,
     DEFAULT_HEIGHT_SCALE,
+    format_average_lw_stream_label,
     format_height_mm_stream_label,
     format_instance_height_display,
     format_lxw_stream_label,
@@ -478,6 +479,7 @@ def _draw_instance_labels(
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
     height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
+    average_lw_mm: list[tuple[float, float] | None] | None = None,
 ) -> None:
     label_scale = label_size_factor * max(0.75, min(1.2, frame.shape[1] / 550.0))
     line_height = max(24, int(round(34 * label_scale)))
@@ -486,8 +488,8 @@ def _draw_instance_labels(
 
     line_index = 0
     thickness = max(2, int(round(2 * label_size_factor)))
-    if draw_lw_label or draw_height_labels:
-        for instance in instances:
+    if draw_lw_label or draw_height_labels or average_lw_mm:
+        for index, instance in enumerate(instances):
             if draw_lw_label:
                 metric = _format_lwh_stream_label(
                     instance,
@@ -537,6 +539,21 @@ def _draw_instance_labels(
                         thickness=thickness,
                     )
                     line_index += 1
+
+            if average_lw_mm is not None and index < len(average_lw_mm):
+                pair = average_lw_mm[index]
+                if pair is not None:
+                    average_lw_label = format_average_lw_stream_label(pair[0], pair[1])
+                    if average_lw_label is not None:
+                        text = f"{line_index}: {average_lw_label}"
+                        _put_text_outlined(
+                            frame,
+                            text,
+                            (x0, y0 + line_index * line_height),
+                            scale=label_scale,
+                            thickness=thickness,
+                        )
+                        line_index += 1
 
     if water_cut_overlays:
         base_y = y0 + line_index * line_height + int(round(8 * label_size_factor))
@@ -643,6 +660,7 @@ def compose_stream_frame(
     height_scale: float = DEFAULT_HEIGHT_SCALE,
     height_offset: float = DEFAULT_HEIGHT_OFFSET,
     height_percentile: float = DEFAULT_HEIGHT_PERCENTILE,
+    average_lw_mm: list[tuple[float, float] | None] | None = None,
 ) -> np.ndarray:
     frame = image_bgr.copy()
     labels = label_instances if label_instances is not None else instances
@@ -666,6 +684,7 @@ def compose_stream_frame(
         height_scale=height_scale,
         height_offset=height_offset,
         height_percentile=height_percentile,
+        average_lw_mm=average_lw_mm,
     )
 
     if water_cut_overlays:

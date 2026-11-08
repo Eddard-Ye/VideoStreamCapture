@@ -385,6 +385,45 @@ def resolve_lw_depth_mm(
     return float(z_object_mm) if np.isfinite(z_object_mm) else float("nan")
 
 
+def measure_lw_mm_at_average_height(
+    mask: np.ndarray,
+    z_plane_ref_mm: float,
+    height_mm: float,
+    fx: float,
+    fy: float,
+) -> tuple[float, float] | None:
+    """OBB length/width at ``z = plane depth - average height``.
+
+    Returns None when the average height or that working depth cannot be used.
+    Does not fall back to the table-plane depth.
+    """
+    if mask is None or not np.any(mask):
+        return None
+    if (
+        not np.isfinite(height_mm)
+        or not np.isfinite(z_plane_ref_mm)
+        or z_plane_ref_mm <= 0
+        or fx <= 0
+        or fy <= 0
+    ):
+        return None
+    z_lw_mm = float(z_plane_ref_mm) - float(height_mm)
+    if not np.isfinite(z_lw_mm) or z_lw_mm <= 0:
+        return None
+    measured = min_area_rect_measure_mm(
+        largest_contour_from_mask(mask),
+        z_lw_mm,
+        fx,
+        fy,
+    )
+    if measured is None:
+        return None
+    _box, length_mm, width_mm, _angle = measured
+    if not np.isfinite(length_mm) or not np.isfinite(width_mm):
+        return None
+    return float(length_mm), float(width_mm)
+
+
 def measure_mask_mm(
     mask: np.ndarray,
     depth_mm: np.ndarray,
@@ -489,6 +528,12 @@ def format_peak_height_mm_stream_label(peak_height_mm: float) -> str | None:
 def format_plane_depth_stream_label(z_plane_ref_mm: float) -> str | None:
     if np.isfinite(z_plane_ref_mm) and z_plane_ref_mm > 0:
         return f"plane_depth: {z_plane_ref_mm:.1f}mm;"
+    return None
+
+
+def format_average_lw_stream_label(length_mm: float, width_mm: float) -> str | None:
+    if np.isfinite(length_mm) and np.isfinite(width_mm):
+        return f"average LxW: {length_mm:.1f} mm x {width_mm:.1f}mm"
     return None
 
 
